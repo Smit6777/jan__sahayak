@@ -1,0 +1,173 @@
+/* Jan-Sahayak - Next Gen UI Styles */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+/* CSS Variables - Cyberpunk / GovTech Theme */
+:root {
+  /* Core Palette */
+  --bg-deep: #050414;
+  /* Darker than before */
+  --bg-primary: #0f0524;
+  --bg-secondary: #1a0b38;
+  --bg-card: rgba(20, 10, 50, 0.4);
+  --bg-glass: rgba(10, 5, 30, 0.7);
+  --bg-glass-strong: rgba(10, 5, 30, 0.95);
+
+  /* Neon Accents */
+  --neon-blue: #00f3ff;
+  --neon-purple: #d946ef;
+  --neon-pink: #ff0055;
+  --neon-green: #00ff9d;
+  --neon-gold: #ffd600;
+
+  /* Text Colors */
+  --text-primary: #ffffff;
+  --text-secondary: #c4b5fd;
+  --text-muted: #7c76ad;
+  --text-highlight: #e0dfff;
+
+  /* Gradients */
+  --gradient-main: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+  --gradient-gold: linear-gradient(135deg, #ffd600, #ff8800);
+  --gradient-glass: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+  --gradient-glow: radial-gradient(circle at center, rgba(188, 19, 254, 0.2) 0%, transparent 70%);
+
+  /* Borders & Shadows */
+  --border-light: 1px solid rgba(255, 255, 255, 0.08);
+  --border-neon: 1px solid rgba(0, 243, 255, 0.3);
+  --shadow-neon: 0 0 20px rgba(0, 243, 255, 0.2);
+  --shadow-card: 0 10px 40px -10px rgba(0, 0, 0, 0.6);
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 3rem;
+  --space-2xl: 5rem;
+  --space-3xl: 8rem;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 40px;
+  --radius-full: 9999px;
+}
+
+/* Base Reset */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-purple);
+}
+
+/* Typography Overrides */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: clamp(3rem, 5vw, 5rem);
+  background: linear-gradient(to right, #fff, #c4b5fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+}
+
+/* Utility Classes */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: var(--border-light);
+  box-shadow: var(--shadow-card);
+}
+
+.text-gradient {
+  background: var(--gradient-main);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 15px rgba(188, 19, 254, 0.3));
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+}
+
+/* Scanline Overlay (Retro/Cyberpunk effect) */
+.scanlines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(to bottom,
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 0) 50%,
+      rgba(0, 0, 0, 0.1) 50%,
+      rgba(0, 0, 0, 0.1));
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.3;
+}
+
+/* Global Animations */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
