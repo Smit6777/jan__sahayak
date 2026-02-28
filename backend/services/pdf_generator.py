@@ -37,45 +37,44 @@ GREEN = (0.0, 0.5, 0.1)
 FIELD_MAPS = {
 
     # ── UJJWALA YOJANA 5.0 KYC form (pmuy.gov.in) ────────────────────────────
-    # Coordinates measured from actual PDF (595 x 842 pts)
-    # Text is placed AFTER the label row at y = label_y+2 (overlaid in the cell)
+    # Page size: 595 x 842 pts.  Values written in the cell BELOW each label.
+    # label row y -> write value at y+11 (just inside cell below the text)
     "ujjwala": {
         "form_file": "ujjwala.pdf",
         "fields": {
-            # Section a) Name rows — write after each "Name" label x=130
-            "name":        (0, 130, 150, 330, 8),   # First Name row y≈147, write value
-            "aadhar":      (0, 130, 183, 280, 8),   # Aadhaar row y≈181
-            "mobile":      (0, 130, 194, 160, 8),   # Mobile row y≈192
-            # Section d) Bank Details — write after label on each bank row
-            "bankAccount": (0, 165, 507, 340, 8),   # Bank Account Number y≈505
-            "bankName":    (0, 165, 484, 250, 8),   # Bank Name y≈482
-            "ifsc":        (0, 420, 496, 130, 8),   # IFSC Code y≈494, x after '4. IFSC Code'
-            # Section b) Address — City/Town row
-            "address":     (0, 160, 280, 190, 7),   # City/Town row y≈278
-            # Section e) Ration card number
-            "bplNumber":   (0, 160, 537, 300, 8),   # Ration card number row y~535
+            # Section a) — Name grid rows (each row ≈11pt tall)
+            "name":        (0, 130, 158, 330, 7),   # First Name row label y=147,  value at 158
+            "aadhar":      (0, 130, 192, 270, 7),   # Aadhaar row label y=181,    value at 192
+            "mobile":      (0, 130, 203, 150, 7),   # Mobile row label y=192,     value at 203
+            # Section d) Bank Details
+            "bankName":    (0, 165, 492, 250, 7),   # Bank Name label y=482,      value at 492
+            "ifsc":        (0, 420, 504, 120, 7),   # IFSC Code label y=494,      value at 504
+            "bankAccount": (0, 165, 516, 330, 7),   # Bank Acct No label y=505,   value at 516
+            # Section b) Address — City/Town
+            "address":     (0, 160, 290, 190, 7),   # City/Town label y=278,      value at 290
+            # Section e) Ration card
+            "bplNumber":   (0, 160, 548, 290, 7),   # Ration no label y=537,      value at 548
         },
-        "photo_rect": fitz.Rect(467, 112, 555, 170),   # "Paste your Photo here" box
+        "photo_rect": fitz.Rect(467, 112, 555, 170),
     },
 
     # ── PM KISAN (Page 0) ─────────────────────────────────────────────────────
-    # Assam PM-KISAN Registration Form. Page size: 612 x 1008 pts.
-    # Coordinates measured: label text ends at x≈254 (colon), value starts x≈264.
+    # Page size: 612 x 1008 pts. Values written after the colon (x>254).
+    # Each row gap is ~24pts. label y -> value at label_y - 4 (vertically centred on line).
     "pm-kisan": {
         "form_file": "pm-kisan.pdf",
         "fields": {
-            "district":    (0, 264, 276,  300, 9),   # row 2  y=276
-            "subDistrict": (0, 264, 299,  300, 9),   # row 3  y=299
-            "village":     (0, 264, 347,  300, 9),   # row 5  y=347
-            "name":        (0, 264, 371,  300, 9),   # row 6 Farmer Name y=370
-            "fatherName":  (0, 264, 400,  300, 9),   # row 7 Father/Mother y=400
-            "gender":      (0, 340, 424,  120, 9),   # row 8 Gender (tick box area)
-            "aadhar":      (0, 264, 628,  300, 9),   # row 15 Identity Proof No. y=628
-            "address":     (0, 264, 658,  320, 9),   # row 16 Residential Address y=656
-            "ifsc":        (0, 264, 738,  260, 9),   # row 17 IFSC Code y=738
-            "bankName":    (0, 264, 762,  260, 9),   # row 18 Bank Name and Branch y=762
-            "bankAccount": (0, 264, 807,  300, 9),   # row 19 Account Number y=807
-            "mobile":      (0, 264, 929,  200, 9),   # row 23 Mobile Number y=929
+            "district":    (0, 264, 272,  290, 9),   # row 2  label y=276
+            "subDistrict": (0, 264, 295,  290, 9),   # row 3  label y=299
+            "village":     (0, 264, 343,  290, 9),   # row 5  label y=347
+            "name":        (0, 264, 367,  290, 9),   # row 6  Farmer Name label y=370
+            "fatherName":  (0, 264, 396,  290, 9),   # row 7  Father label y=400
+            "aadhar":      (0, 264, 624,  290, 9),   # row 15 Identity Proof No label y=628
+            "address":     (0, 264, 653,  310, 9),   # row 16 Residential Address label y=656
+            "ifsc":        (0, 264, 734,  250, 9),   # row 17 IFSC Code label y=738
+            "bankName":    (0, 264, 758,  250, 9),   # row 18 Bank Name label y=762
+            "bankAccount": (0, 264, 803,  290, 9),   # row 19 Account Number label y=807
+            "mobile":      (0, 264, 925,  200, 9),   # row 23 Mobile Number label y=929
         },
         "photo_rect": None,
     },
