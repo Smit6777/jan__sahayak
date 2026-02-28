@@ -181,23 +181,27 @@ async def recommend_scheme_endpoint(request: VoiceInputRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class ChatRequest(BaseModel):
+    message: str
+    history: list = []   # list of {"role": "user"/"assistant", "content": "..."}
+    language: str = "hi"
+
 @app.post("/api/chat")
-async def chat_endpoint(request: VoiceInputRequest):
+async def chat_endpoint(request: ChatRequest):
     """
-    General Chat Endpoint (Gemini/Demo)
+    Human-like AI chat — greets, asks questions, collects form data.
     """
     try:
         from services.bedrock_agent import chat_with_ai
-        
-        # We use 'transcript' as the user message
+
         result = await chat_with_ai(
-            history=[], # TODO: Pass history if needed
-            message=request.transcript,
+            history=request.history,
+            message=request.message,
             demo_mode=DEMO_MODE
         )
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"text": "Kuch gadbad ho gayi. Dobara try karein.", "action": "NONE", "fields": {}}
 
 @app.post("/api/extract-from-image")
 async def extract_from_aadhar(file: UploadFile = File(...)):

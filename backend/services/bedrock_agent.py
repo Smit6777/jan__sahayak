@@ -264,61 +264,137 @@ async def chat_with_ai(
     demo_mode: bool = True
 ) -> Dict[str, Any]:
     """
-    General Chat with Context (Gemini)
+    Human-like AI assistant that greets, asks questions, and collects form data.
+    Uses Gemini if API key is set, otherwise smart demo fallback.
     """
+    SYSTEM_PROMPT = """You are Jan-Sahayak, a friendly and helpful Indian government assistant.
+You speak naturally in Hindi and English (Hinglish is fine).
+Your job is to:
+1. Greet users warmly when they say hello/namaste.
+2. Understand what they need - complaint, form filling, scheme information.
+3. Ask questions ONE AT A TIME to collect their information (name, Aadhaar, mobile, bank details, address).
+4. Be conversational, patient, and empathetic - like a real helpful government worker.
+5. When you have collected enough information, return it as JSON in this format at the END of your response:
+   FIELDS_COLLECTED: {"name": "...", "aadhar": "...", "mobile": "...", "address": "...", "bankAccount": "...", "ifsc": "...", "bankName": "..."}
+
+Rules:
+- Start with: "Namaste! Main Jan-Sahayak hoon. Aapki kya seva kar sakta hoon? 🙏"
+- Ask only ONE question at a time
+- Be warm, encouraging, like a real person
+- If they want to complain, ask: what is the complaint about? then collect their name, mobile, and details
+- If they want a form/scheme, identify which scheme and collect required fields
+- Speak in Hindi/Hinglish by default but switch to English if user uses English
+- Keep responses SHORT (2-3 sentences max)"""
+
     try:
         import google.generativeai as genai
-        
+
         api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key or demo_mode:
-            # Smart Rule-Based Fallback for Demo Mode
-            msg_lower = message.lower()
-            
-            response_text = "I am a demo AI. I can help with government schemes."
-            action = "NONE"
-            
-            # 1. Distress / Help
-            if any(w in msg_lower for w in ["help", "lost", "fail", "die", "problem", "poor"]):
-                 response_text = "I understand you are facing difficulties. I can help you apply for government support. Are you a farmer or do you need financial aid?"
-            
-            # 2. Farming / Crops
-            elif any(w in msg_lower for w in ["crop", "farm", "kisan", "agriculture", "rain", "seed"]):
-                 response_text = "For crop failure or farming support, **PM Kisan Samman Nidhi** is the best scheme. Shall I open that for you?"
-                 action = "SWITCH_SCHEME" # In a real scenario, we might wait for confirmation, but here we suggest logic
-            
-            # 3. Simple Queries
-            elif "tell" in msg_lower or "what" in msg_lower:
-                 response_text = "I can tell you about PM Kisan, Ration Cards, Ayushman Bharat, and more. Which one are you interested in?"
-                 
-            # 4. Greetings
-            elif any(w in msg_lower for w in ["hello", "hi", "hey", "namaste"]):
-                 response_text = "Namaste! I am Jan-Sahayak. How can I serve you today?"
-
-            # 5. Default
-            else:
-                 response_text = f"I heard '{message}'. In this demo version, I can best help if you ask about 'farming', 'pension', or 'rations'."
-
-            return {
-                "text": response_text,
-                "action": action,
-                # "scheme": "pm-kisan" # Optional if we wanted to force switch
-            }
+        if not api_key:
+            raise ValueError("No Gemini API key")
 
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-pro')
-        
-        # Construct history for Gemini
-        chat = model.start_chat(history=[{"role": "user", "parts": ["Act as Jan-Sahayak, a helpful Indian government assistant."]}])
-        
+        model = genai.GenerativeModel(
+            model_name='gemini-1.5-flash',
+            system_instruction=SYSTEM_PROMPT
+        )
+
+        # Build chat history
+        gemini_history = []
+        for h in history:
+            role = "user" if h.get("role") == "user" else "model"
+            gemini_history.append({
+                "role": role,
+                "parts": [h.get("content", "")]
+            })
+
+        chat = model.start_chat(history=gemini_history)
         response = chat.send_message(message)
+        response_text = response.text
+
+        # Check if fields were collected
+        fields = {}
+        action = "NONE"
+        if "FIELDS_COLLECTED:" in response_text:
+            try:
+                json_part = response_text.split("FIELDS_COLLECTED:")[1].strip()
+                json_match = re.search(r'\{.*\}', json_part, re.DOTALL)
+                if json_match:
+                    fields = json.loads(json_match.group())
+                    action = "FILL_FORM"
+                    # Clean response text - remove the JSON part
+                    response_text = response_text.split("FIELDS_COLLECTED:")[0].strip()
+                    if not response_text:
+                        response_text = "Maine aapki saari jaankari le li hai! Ab main form fill kar deta hoon. ✅"
+            except Exception:
+                pass
+
         return {
-            "text": response.text,
-            "action": "NONE"
+            "text": response_text,
+            "action": action,
+            "fields": fields
         }
 
     except Exception as e:
         print(f"Gemini Error: {e}")
+        # Smart human-like demo fallback
+        msg_lower = message.lower().strip()
+        response_text = ""
+        action = "NONE"
+        fields = {}
+
+        # Greetings
+        if any(w in msg_lower for w in ["hello", "hi", "hey", "namaste", "helo", "hii"]):
+            response_text = "Namaste! 🙏 Main Jan-Sahayak hoon. Main aapki sarkari yojanaon mein madad kar sakta hoon. Aap kya chahte hain — koi form bharna hai ya koi shikayat karni hai?"
+
+        # Complaint
+        elif any(w in msg_lower for w in ["complaint", "shikayat", "complain", "problem", "issue"]):
+            response_text = "Samjha main. Aapki shikayat ke liye mujhe kuch jaankari chahiye. Pehle aapka poora naam batayein?"
+            action = "ASK_NAME"
+
+        # Gas / LPG / Ujjwala
+        elif any(w in msg_lower for w in ["gas", "cylinder", "lpg", "ujjwala", "cooking"]):
+            response_text = "Ujjwala Yojana ke liye main aapka form bhar sakta hoon! 🔥 Pehle aapka poora naam batayein?"
+            action = "START_FORM:ujjwala"
+
+        # Farmer / PM Kisan
+        elif any(w in msg_lower for w in ["kisan", "farmer", "farm", "crop", "kheti", "khet"]):
+            response_text = "PM Kisan Samman Nidhi ke liye main madad karunga! 🌾 Aapka poora naam kya hai?"
+            action = "START_FORM:pm-kisan"
+
+        # Ration
+        elif any(w in msg_lower for w in ["ration", "food", "rashan", "gehun", "wheat"]):
+            response_text = "Ration Card ke liye main aapka form bhar sakta hoon! 🍚 Aapka naam batayein?"
+            action = "START_FORM:ration-card"
+
+        # House / Awas
+        elif any(w in msg_lower for w in ["house", "ghar", "awas", "home", "makan"]):
+            response_text = "PM Awas Yojana ke liye aavedan karte hain! 🏠 Aapka poora naam kya hai?"
+            action = "START_FORM:pm-awas"
+
+        # Health
+        elif any(w in msg_lower for w in ["health", "hospital", "doctor", "bimar", "dawai", "ayushman"]):
+            response_text = "Ayushman Bharat ke liye main madad karunga! 🏥 Pehle aapka naam batayein?"
+            action = "START_FORM:ayushman-bharat"
+
+        # Name provided (short response, likely answering a question)
+        elif len(msg_lower.split()) <= 4 and not any(c.isdigit() for c in msg_lower):
+            response_text = f"Shukriya! Ab aapka Aadhaar number batayein (12 digits)?"
+
+        # Aadhaar number provided
+        elif re.search(r'\d{12}|\d{4}\s\d{4}\s\d{4}', message):
+            response_text = "Acha! Ab aapka 10-digit mobile number batayein?"
+
+        # Mobile number
+        elif re.search(r'\d{10}', message):
+            response_text = "Bahut acha! Ab aapka bank account number batayein?"
+
+        # Default
+        else:
+            response_text = "Main samjha. Kya aap mujhe bata sakte hain ki aap kaunsi sarkari yojana ke liye apply karna chahte hain? Jaise gas connection, kisan yojana, ration card?"
+
         return {
-            "text": "I am having trouble connecting to my brain. Please try again.",
-            "action": "NONE"
+            "text": response_text,
+            "action": action,
+            "fields": fields
         }
