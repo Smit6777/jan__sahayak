@@ -37,47 +37,54 @@ GREEN = (0.0, 0.5, 0.1)
 FIELD_MAPS = {
 
     # ── UJJWALA YOJANA 5.0 KYC form (pmuy.gov.in) ────────────────────────────
-    # Page size: 595 x 842 pts.  Values written in the cell BELOW each label.
-    # label row y -> write value at y+11 (just inside cell below the text)
+    # Page: 595 x 842 pts.
+    # 'fields'  → tuple (page, x, y, max_w, fontsize)  ← free-text overlay
+    # 'box_fields' → tuple (page, x_start, y_center, box_w, max_boxes)  ← char-per-box
     "ujjwala": {
         "form_file": "ujjwala.pdf",
-        "fields": {
-            # Section a) — Name grid rows (each row ≈11pt tall)
-            "name":        (0, 130, 158, 330, 7),   # First Name row label y=147,  value at 158
-            "aadhar":      (0, 130, 192, 270, 7),   # Aadhaar row label y=181,    value at 192
-            "mobile":      (0, 130, 203, 150, 7),   # Mobile row label y=192,     value at 203
-            # Section d) Bank Details
-            "bankName":    (0, 165, 492, 250, 7),   # Bank Name label y=482,      value at 492
-            "ifsc":        (0, 420, 504, 120, 7),   # IFSC Code label y=494,      value at 504
-            "bankAccount": (0, 165, 516, 330, 7),   # Bank Acct No label y=505,   value at 516
-            # Section b) Address — City/Town
-            "address":     (0, 160, 290, 190, 7),   # City/Town label y=278,      value at 290
-            # Section e) Ration card
-            "bplNumber":   (0, 160, 548, 290, 7),   # Ration no label y=537,      value at 548
+        # Free-text fields (blank line or wide cell — just write the value)
+        "fields": {},
+        # Box-grid fields — one UPPERCASE char per box
+        # Measured from actual form: boxes start after label column
+        # Section a) Name: label col ends ~x=130, box_w≈8.6pt, row height≈11pt
+        # Rows: FirstName y=147, MiddleName y=158, LastName y=170, Aadhaar y=181, Mobile y=192
+        # Section d) Bank: boxes start x≈170 for rows y=471(BankAcctName),482(BankName),494(Branch),505(AcctNo)
+        #             IFSC: starts x≈389, y=494
+        "box_fields": {
+            #                         pg  x_start  y_ctr  box_w  max
+            "name":        (0,  130.0, 152.0,  8.6,  35),   # First Name
+            "aadhar":      (0,  130.0, 185.0,  8.6,  16),   # Aadhaar (12 digits + spaces)
+            "mobile":      (0,  130.0, 196.0,  8.6,  12),   # Mobile 10 digits
+            "bankAccount": (0,  170.0, 508.0,  8.6,  25),   # Bank Account Number
+            "bankName":    (0,  170.0, 485.0,  8.6,  25),   # Bank Name
+            "ifsc":        (0,  389.0, 497.0,  8.6,  11),   # IFSC Code (4+7=11)
+            "address":     (0,  170.0, 280.0,  8.6,  25),   # City/Town
+            "bplNumber":   (0,  170.0, 540.0,  8.6,  20),   # Ration card no.
         },
         "photo_rect": fitz.Rect(467, 112, 555, 170),
     },
 
     # ── PM KISAN (Page 0) ─────────────────────────────────────────────────────
-    # Page size: 612 x 1008 pts. Values written after the colon (x>254).
-    # Each row gap is ~24pts. label y -> value at label_y - 4 (vertically centred on line).
+    # Page: 612 x 1008 pts. Plain text after colon (x>264).
     "pm-kisan": {
         "form_file": "pm-kisan.pdf",
         "fields": {
-            "district":    (0, 264, 272,  290, 9),   # row 2  label y=276
-            "subDistrict": (0, 264, 295,  290, 9),   # row 3  label y=299
-            "village":     (0, 264, 343,  290, 9),   # row 5  label y=347
-            "name":        (0, 264, 367,  290, 9),   # row 6  Farmer Name label y=370
-            "fatherName":  (0, 264, 396,  290, 9),   # row 7  Father label y=400
-            "aadhar":      (0, 264, 624,  290, 9),   # row 15 Identity Proof No label y=628
-            "address":     (0, 264, 653,  310, 9),   # row 16 Residential Address label y=656
-            "ifsc":        (0, 264, 734,  250, 9),   # row 17 IFSC Code label y=738
-            "bankName":    (0, 264, 758,  250, 9),   # row 18 Bank Name label y=762
-            "bankAccount": (0, 264, 803,  290, 9),   # row 19 Account Number label y=807
-            "mobile":      (0, 264, 925,  200, 9),   # row 23 Mobile Number label y=929
+            "district":    (0, 264, 272,  290, 9),
+            "subDistrict": (0, 264, 295,  290, 9),
+            "village":     (0, 264, 343,  290, 9),
+            "name":        (0, 264, 367,  290, 9),
+            "fatherName":  (0, 264, 396,  290, 9),
+            "aadhar":      (0, 264, 624,  290, 9),
+            "address":     (0, 264, 653,  310, 9),
+            "ifsc":        (0, 264, 734,  250, 9),
+            "bankName":    (0, 264, 758,  250, 9),
+            "bankAccount": (0, 264, 803,  290, 9),
+            "mobile":      (0, 264, 925,  200, 9),
         },
+        "box_fields": {},
         "photo_rect": None,
     },
+
 
     # ── SUKANYA SAMRIDDHI (Page 0) ────────────────────────────────────────────
     "sukanya-samriddhi": {
@@ -176,14 +183,48 @@ def _write_text(page: fitz.Page, x: float, y: float,
     """Insert text at absolute position (x, y) in PDF point units."""
     if not text:
         return
-    # Clip overly long values to avoid overflow
     page.insert_text(
         fitz.Point(x, y),
         text,
         fontsize=fontsize,
         color=color,
-        fontname="helv",   # built-in Helvetica
+        fontname="helv",
     )
+
+
+def _fill_boxes(page: fitz.Page, x_start: float, y_center: float,
+                box_w: float, text: str, max_boxes: int,
+                fontsize: float = 7, color: tuple = INK):
+    """
+    Fill a row of character boxes one character at a time.
+    - text is converted to UPPERCASE BLOCK LETTERS (as per official form rules)
+    - spaces between words = one empty box skipped
+    - each character is horizontally centered in its box
+    - y_center is the vertical center of the box row
+    """
+    text = str(text).upper().strip()
+    # Replace multiple spaces with single space
+    import re
+    text = re.sub(r'  +', ' ', text)
+
+    # Estimate char width for centering (Helvetica ~0.55 * fontsize)
+    char_px = fontsize * 0.55
+
+    for i, ch in enumerate(text):
+        if i >= max_boxes:
+            break
+        if ch == ' ':
+            continue   # leave box blank (space = skip box)
+        # Center horizontally in the box
+        x_box_left = x_start + i * box_w
+        x_char     = x_box_left + (box_w - char_px) / 2
+        page.insert_text(
+            fitz.Point(x_char, y_center),
+            ch,
+            fontsize=fontsize,
+            color=color,
+            fontname="helv",
+        )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -339,14 +380,28 @@ async def generate_filled_pdf(
         else:
             doc = fitz.open(form_path)
 
-            # Overlay each field value at its mapped coordinate
+            # ── Box-grid fields (one UPPERCASE char per box) ──────────────
+            box_map = field_map.get("box_fields", {})
+            for field_key, value in fields.items():
+                if field_key not in box_map:
+                    continue
+                if not str(value).strip():
+                    continue
+                pg_idx, x_start, y_center, box_w, max_boxes = box_map[field_key]
+                if pg_idx >= len(doc):
+                    continue
+                page = doc[pg_idx]
+                _fill_boxes(page, x_start, y_center, box_w,
+                            str(value), max_boxes,
+                            fontsize=7, color=INK)
+
+            # ── Free-text fields (plain text after colon) ─────────────────
             coord_map = field_map.get("fields", {})
             for field_key, value in fields.items():
                 if field_key not in coord_map:
                     continue
                 if not str(value).strip():
                     continue
-
                 pg_idx, x, y, max_w, fsize = coord_map[field_key]
                 if pg_idx >= len(doc):
                     continue
