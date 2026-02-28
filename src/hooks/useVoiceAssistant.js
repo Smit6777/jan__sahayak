@@ -81,7 +81,7 @@ export function useVoiceAssistant(scheme, onFieldUpdate, onSchemeChange, onDownl
 
         try {
             console.log(`📡 Fetching audio from backend...`);
-            const response = await fetch('http://localhost:8000/api/speak', {
+            const response = await fetch('https://jan-sahayak-api.onrender.com/api/speak', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text, language })
@@ -197,7 +197,7 @@ export function useVoiceAssistant(scheme, onFieldUpdate, onSchemeChange, onDownl
         if (state === AI_STATE.TRIAGE) {
             console.log("🕵️ Analyzing user problem...");
             try {
-                const response = await fetch('http://localhost:8000/api/recommend-scheme', {
+                const response = await fetch('https://jan-sahayak-api.onrender.com/api/recommend-scheme', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ transcript, language })
@@ -264,7 +264,7 @@ export function useVoiceAssistant(scheme, onFieldUpdate, onSchemeChange, onDownl
             // FALLBACK TO AI (Chat)
             console.log("⚠️ Input ambiguous or conversational. Asking Backend AI for Intent...");
             try {
-                const response = await fetch('http://localhost:8000/api/chat', {
+                const response = await fetch('https://jan-sahayak-api.onrender.com/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ transcript, language, scheme: scheme ? 'general' : 'triage' })

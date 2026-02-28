@@ -10,7 +10,7 @@ Features:
 """
 
 import os
-from fastapi import FastAPI, UploadFile, File, HTTPException, Body
+from fastapi import FastAPI, UploadFile, File, HTTPException, Body, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
@@ -237,23 +237,60 @@ async def save_form(form_data: dict = Body(...)):
         return {"success": False, "error": str(e)}
 
 @app.post("/api/fill-form")
-async def fill_form(form_data: FormData):
+async def fill_form(
+    scheme: str = Form(...),
+    fields: str = Form(...),          # JSON string of field values
+    photo: Optional[UploadFile] = File(None),                    # Passport photo
+    aadhar_copy: Optional[UploadFile] = File(None),             # Aadhar copy
+    income_cert: Optional[UploadFile] = File(None),             # Income certificate
+    other_doc_1: Optional[UploadFile] = File(None),             # Any other document
+    other_doc_2: Optional[UploadFile] = File(None),
+):
     """
-    Generate filled PDF form
+    Generate filled PDF form using the real government PDF.
+    Accepts:
+      - scheme: scheme ID
+      - fields: JSON-stringified dict of form field values
+      - photo: passport-size photo of the applicant
+      - aadhar_copy: scanned Aadhar card image
+      - income_cert: income certificate image
+      - other_doc_1, other_doc_2: any other supporting documents
     """
     try:
-        if form_data.scheme not in SCHEMES:
+        import json as _json
+        parsed_fields = _json.loads(fields)
+
+        if scheme not in SCHEMES:
             raise HTTPException(status_code=400, detail="Invalid scheme")
-        
+
+        # Read photo bytes
+        photo_bytes = await photo.read() if photo else None
+
+        # Build extra_docs list from uploaded supporting documents
+        extra_docs = []
+        doc_map = [
+            (aadhar_copy, "Aadhaar Card Copy / आधार कार्ड प्रति"),
+            (income_cert, "Income Certificate / आय प्रमाण पत्र"),
+            (other_doc_1, "Supporting Document 1 / सहायक दस्तावेज़ 1"),
+            (other_doc_2, "Supporting Document 2 / सहायक दस्तावेज़ 2"),
+        ]
+        for upload_file, label in doc_map:
+            if upload_file:
+                b = await upload_file.read()
+                if b:
+                    extra_docs.append({"label": label, "bytes": b})
+
         pdf_path = await generate_filled_pdf(
-            scheme=form_data.scheme,
-            fields=form_data.fields
+            scheme=scheme,
+            fields=parsed_fields,
+            photo_bytes=photo_bytes,
+            extra_docs=extra_docs if extra_docs else None,
         )
-        
+
         return FileResponse(
             pdf_path,
             media_type="application/pdf",
-            filename=f"{form_data.scheme}_filled_form.pdf"
+            filename=f"{scheme}_official_form.pdf"
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

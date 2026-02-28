@@ -50,26 +50,31 @@ export default function AadharUpload({ onExtractedData, disabled }) {
         };
         reader.readAsDataURL(file);
 
-        // Simulate OCR processing (replace with actual AWS Textract call)
-        setIsProcessing(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
 
-        // Mock OCR result - In production, this would call AWS Textract
-        setTimeout(() => {
-            const mockData = {
-                name: 'राजेश कुमार / RAJESH KUMAR',
-                dob: '15/08/1985',
-                gender: 'MALE / पुरुष',
-                aadhar: '1234 5678 9012',
-                address: '123, Main Street, Anand, Gujarat - 388001'
-            };
+            const response = await fetch('https://jan-sahayak-api.onrender.com/api/extract-from-image', {
+                method: 'POST',
+                body: formData
+            });
 
-            setExtractedData(mockData);
-            setIsProcessing(false);
+            const result = await response.json();
 
-            if (onExtractedData) {
-                onExtractedData(mockData);
+            if (result.success && result.data) {
+                setExtractedData(result.data);
+                if (onExtractedData) {
+                    onExtractedData(result.data);
+                }
+            } else {
+                setError(result.message || 'Could not extract valid data. Please try a clearer image.');
             }
-        }, 2000);
+        } catch (err) {
+            console.error("OCR API Error:", err);
+            setError('Failed to connect to the OCR service. Please check your internet connection.');
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     const clearFile = () => {

@@ -10,3 +10,4 @@ boto3
 httpx
 gTTS==2.5.1
 aiofiles==23.2.1
+PyMuPDF>=1.24.0

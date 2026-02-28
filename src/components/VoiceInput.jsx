@@ -256,7 +256,7 @@ export default function VoiceInput({ onTranscript, disabled, autoStart }) {
                 onClick={async () => {
                     try {
                         console.log("Testing Audio...");
-                        const response = await fetch('http://localhost:8000/api/speak', {
+                        const response = await fetch('https://jan-sahayak-api.onrender.com/api/speak', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ text: "Hello, testing audio one two three.", language: "en-IN" })

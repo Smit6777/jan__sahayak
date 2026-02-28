@@ -92,6 +92,26 @@ export default function FormFiller() {
     const [formData, setFormData] = useState({});
     const [chatInput, setChatInput] = useState("");
 
+    // Document uploads
+    const [photoFile, setPhotoFile] = useState(null);
+    const [aadharCopy, setAadharCopy] = useState(null);
+    const [incomeCert, setIncomeCert] = useState(null);
+    const [otherDoc1, setOtherDoc1] = useState(null);
+    const [otherDoc2, setOtherDoc2] = useState(null);
+
+    // Helper: build FormData for the fill-form API (multipart)
+    const buildFormPayload = () => {
+        const payload = new FormData();
+        payload.append('scheme', schemeId);
+        payload.append('fields', JSON.stringify(formData));
+        if (photoFile) payload.append('photo', photoFile);
+        if (aadharCopy) payload.append('aadhar_copy', aadharCopy);
+        if (incomeCert) payload.append('income_cert', incomeCert);
+        if (otherDoc1) payload.append('other_doc_1', otherDoc1);
+        if (otherDoc2) payload.append('other_doc_2', otherDoc2);
+        return payload;
+    };
+
     // Voice Assistant Hook
     const {
         state: aiState,
@@ -112,7 +132,7 @@ export default function FormFiller() {
         async () => {
             try {
                 // Submit form data to backend to generate PDF
-                const response = await fetch('http://localhost:8000/api/fill-form', {
+                const response = await fetch('https://jan-sahayak-api.onrender.com/api/fill-form', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ scheme: schemeId, fields: formData })
@@ -149,12 +169,9 @@ export default function FormFiller() {
     // Manual Submit Handler
     const handleManualSubmit = async () => {
         try {
-            // Validate at least one field is filled?
-            // For now, loose validation
-            const response = await fetch('http://localhost:8000/api/fill-form', {
+            const response = await fetch('https://jan-sahayak-api.onrender.com/api/fill-form', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ scheme: schemeId, fields: formData })
+                body: buildFormPayload()
             });
 
             if (response.ok) {
@@ -162,11 +179,11 @@ export default function FormFiller() {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `${schemeId}_filled.pdf`;
+                a.download = `${schemeId}_official_form.pdf`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-                alert("✅ Form Submitted! PDF Downloaded.");
+                alert("✅ Official Government Form Downloaded!");
             } else {
                 alert("❌ Submission Failed. Backend error.");
             }
@@ -304,13 +321,42 @@ export default function FormFiller() {
                                 </div>
                             )}
                             {scheme && (
+                                <div className="doc-upload-section">
+                                    <h4 className="doc-upload-title">📎 Supporting Documents <span style={{ fontWeight: 400, fontSize: '0.8em', color: '#aaa' }}>(Optional but recommended)</span></h4>
+                                    <div className="doc-upload-grid">
+                                        {[
+                                            { label: '📷 Passport Size Photo', setter: setPhotoFile, id: 'doc-photo' },
+                                            { label: '🪪 Aadhar Card Copy', setter: setAadharCopy, id: 'doc-aadhar' },
+                                            { label: '📄 Income Certificate', setter: setIncomeCert, id: 'doc-income' },
+                                            { label: '📁 Other Document 1', setter: setOtherDoc1, id: 'doc-other1' },
+                                            { label: '📁 Other Document 2', setter: setOtherDoc2, id: 'doc-other2' },
+                                        ].map(({ label, setter, id }) => (
+                                            <label key={id} className="doc-upload-item">
+                                                <span>{label}</span>
+                                                <input
+                                                    type="file"
+                                                    id={id}
+                                                    accept="image/*,.pdf"
+                                                    style={{ display: 'none' }}
+                                                    onChange={e => setter(e.target.files[0] || null)}
+                                                />
+                                                <button type="button" className="doc-browse-btn" onClick={() => document.getElementById(id).click()}>
+                                                    Choose File
+                                                </button>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {scheme && (
                                 <button
                                     className="submit-btn"
                                     onClick={handleManualSubmit}
                                 >
-                                    Submit Form
+                                    📥 Download Filled Government Form
                                 </button>
                             )}
+
                         </div>
                     )}
 
