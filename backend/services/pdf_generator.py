@@ -36,37 +36,46 @@ GREEN = (0.0, 0.5, 0.1)
 
 FIELD_MAPS = {
 
-    # ── UJJWALA YOJANA (Page 0) ───────────────────────────────────────────────
-    # Official KYC form from pmuy.gov.in
+    # ── UJJWALA YOJANA 5.0 KYC form (pmuy.gov.in) ────────────────────────────
+    # Coordinates measured from actual PDF (595 x 842 pts)
+    # Text is placed AFTER the label row at y = label_y+2 (overlaid in the cell)
     "ujjwala": {
         "form_file": "ujjwala.pdf",
         "fields": {
-            "name":        (0, 290, 367, 200, 9),
-            "gender":      (0, 370, 363,  80, 9),
-            "aadhar":      (0, 450, 363, 130, 9),
-            "mobile":      (1,  95, 88,  130, 9),
-            "bankAccount": (0, 200, 505, 330, 9),
-            "ifsc":        (0, 430, 493, 130, 9),
-            "address":     (0, 200, 545, 360, 9),
+            # Section a) Name rows — write after each "Name" label x=130
+            "name":        (0, 130, 150, 330, 8),   # First Name row y≈147, write value
+            "aadhar":      (0, 130, 183, 280, 8),   # Aadhaar row y≈181
+            "mobile":      (0, 130, 194, 160, 8),   # Mobile row y≈192
+            # Section d) Bank Details — write after label on each bank row
+            "bankAccount": (0, 165, 507, 340, 8),   # Bank Account Number y≈505
+            "bankName":    (0, 165, 484, 250, 8),   # Bank Name y≈482
+            "ifsc":        (0, 420, 496, 130, 8),   # IFSC Code y≈494, x after '4. IFSC Code'
+            # Section b) Address — City/Town row
+            "address":     (0, 160, 280, 190, 7),   # City/Town row y≈278
+            # Section e) Ration card number
+            "bplNumber":   (0, 160, 537, 300, 8),   # Ration card number row y~535
         },
-        # Paste photo box is at ~(477, 116) – top-left of the box
-        "photo_rect": fitz.Rect(477, 90, 560, 155),   # page 0
+        "photo_rect": fitz.Rect(467, 112, 555, 170),   # "Paste your Photo here" box
     },
 
     # ── PM KISAN (Page 0) ─────────────────────────────────────────────────────
-    # Assam District offline registration form (standard across states)
+    # Assam PM-KISAN Registration Form. Page size: 612 x 1008 pts.
+    # Coordinates measured: label text ends at x≈254 (colon), value starts x≈264.
     "pm-kisan": {
         "form_file": "pm-kisan.pdf",
         "fields": {
-            "name":        (0, 250, 370, 300, 9),
-            "fatherName":  (0, 260, 399, 290, 9),
-            "gender":      (0, 180, 423, 120, 9),
-            "mobile":      (0, 200, 929,  180, 9),
-            "aadhar":      (0, 350, 564, 200, 9),
-            "bankAccount": (0, 250, 806, 300, 9),
-            "ifsc":        (0, 200, 738, 200, 9),
-            "address":     (0, 200, 656, 350, 9),
-            "landArea":    (1,  80,  56, 200, 9),
+            "district":    (0, 264, 276,  300, 9),   # row 2  y=276
+            "subDistrict": (0, 264, 299,  300, 9),   # row 3  y=299
+            "village":     (0, 264, 347,  300, 9),   # row 5  y=347
+            "name":        (0, 264, 371,  300, 9),   # row 6 Farmer Name y=370
+            "fatherName":  (0, 264, 400,  300, 9),   # row 7 Father/Mother y=400
+            "gender":      (0, 340, 424,  120, 9),   # row 8 Gender (tick box area)
+            "aadhar":      (0, 264, 628,  300, 9),   # row 15 Identity Proof No. y=628
+            "address":     (0, 264, 658,  320, 9),   # row 16 Residential Address y=656
+            "ifsc":        (0, 264, 738,  260, 9),   # row 17 IFSC Code y=738
+            "bankName":    (0, 264, 762,  260, 9),   # row 18 Bank Name and Branch y=762
+            "bankAccount": (0, 264, 807,  300, 9),   # row 19 Account Number y=807
+            "mobile":      (0, 264, 929,  200, 9),   # row 23 Mobile Number y=929
         },
         "photo_rect": None,
     },
