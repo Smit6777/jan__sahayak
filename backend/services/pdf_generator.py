@@ -24,11 +24,20 @@ FIELD_LABELS = {
     "bankAccount": "Bank Account / बैंक खाता",
     "ifsc": "IFSC Code / IFSC कोड",
     "address": "Address / पता",
+    "currentAddress": "Current Address / वर्तमान पता",
     "landArea": "Land Area / भूमि क्षेत्र",
     "deathCertNo": "Death Certificate No. / मृत्यु प्रमाण पत्र",
     "familyMembers": "Family Members / परिवार के सदस्य",
     "income": "Annual Income / वार्षिक आय",
-    "cardType": "Card Type / कार्ड प्रकार"
+    "cardType": "Card Type / कार्ड प्रकार",
+    "motherName": "Mother's Name / माता का नाम",
+    "daughterName": "Daughter's Name / बेटी का नाम",
+    "daughterDOB": "Daughter's DOB / बेटी की जन्मतिथि",
+    "existingDiseases": "Existing Diseases / मौजूदा बीमारियां",
+    "plotSize": "Plot Size / प्लॉट का आकार",
+    "category": "Category / वर्ग",
+    "bplNumber": "BPL Number / बीपीएल नंबर",
+    "cropType": "Crop Type / फसल का प्रकार"
 }
 
 SCHEME_DETAILS = {
@@ -52,6 +61,41 @@ SCHEME_DETAILS = {
         "ministry": "Food & Civil Supplies Department",
         "ministry_hi": "खाद्य एवं नागरिक आपूर्ति विभाग",
         "icon": "🍚"
+    },
+    "ayushman-bharat": {
+        "title": "Ayushman Bharat",
+        "title_hi": "आयुष्मान भारत",
+        "ministry": "Ministry of Health and Family Welfare",
+        "ministry_hi": "स्वास्थ्य और परिवार कल्याण मंत्रालय",
+        "icon": "🏥"
+    },
+    "pm-awas": {
+        "title": "PM Awas Yojana",
+        "title_hi": "पीएम आवास योजना",
+        "ministry": "Ministry of Housing and Urban Affairs",
+        "ministry_hi": "आवासन और शहरी कार्य मंत्रालय",
+        "icon": "🏗️"
+    },
+    "ujjwala": {
+        "title": "PM Ujjwala Yojana",
+        "title_hi": "पीएम उज्ज्वला योजना",
+        "ministry": "Ministry of Petroleum and Natural Gas",
+        "ministry_hi": "पेट्रोलियम और प्राकृतिक गैस मंत्रालय",
+        "icon": "🔥"
+    },
+    "sukanya-samriddhi": {
+        "title": "Sukanya Samriddhi Yojana",
+        "title_hi": "सुकन्या समृद्धि योजना",
+        "ministry": "Ministry of Finance",
+        "ministry_hi": "वित्त मंत्रालय",
+        "icon": "👧"
+    },
+    "kisan-credit": {
+        "title": "Kisan Credit Card",
+        "title_hi": "किसान क्रेडिट कार्ड",
+        "ministry": "Ministry of Agriculture & Farmers Welfare",
+        "ministry_hi": "कृषि एवं किसान कल्याण मंत्रालय",
+        "icon": "💳"
     }
 }
 

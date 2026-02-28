@@ -82,6 +82,36 @@ SCHEMES = {
         "name_hi": "राशन कार्ड आवेदन",
         "icon": "🍚",
         "fields": ["name", "aadhar", "mobile", "familyMembers", "income", "address", "cardType"]
+    },
+    "ayushman-bharat": {
+        "name": "Ayushman Bharat",
+        "name_hi": "आयुष्मान भारत",
+        "icon": "🏥",
+        "fields": ["name", "aadhar", "mobile", "familyMembers", "income", "address", "existingDiseases"]
+    },
+    "pm-awas": {
+        "name": "PM Awas Yojana",
+        "name_hi": "पीएम आवास योजना",
+        "icon": "🏗️",
+        "fields": ["name", "fatherName", "aadhar", "mobile", "income", "currentAddress", "plotSize", "category"]
+    },
+    "ujjwala": {
+        "name": "Ujjwala Yojana",
+        "name_hi": "उज्ज्वला योजना",
+        "icon": "🔥",
+        "fields": ["name", "aadhar", "mobile", "address", "bankAccount", "ifsc", "bplNumber"]
+    },
+    "sukanya-samriddhi": {
+        "name": "Sukanya Samriddhi",
+        "name_hi": "सुकन्या समृद्धि",
+        "icon": "👧",
+        "fields": ["name", "fatherName", "motherName", "daughterName", "daughterDOB", "aadhar", "mobile", "address", "bankAccount"]
+    },
+    "kisan-credit": {
+        "name": "Kisan Credit Card",
+        "name_hi": "किसान क्रेडिट कार्ड",
+        "icon": "💳",
+        "fields": ["name", "fatherName", "aadhar", "mobile", "landArea", "cropType", "bankAccount", "ifsc", "address"]
     }
 }
 
