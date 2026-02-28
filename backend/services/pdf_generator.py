@@ -51,15 +51,29 @@ FIELD_MAPS = {
         # Section d) Bank: boxes start x≈170 for rows y=471(BankAcctName),482(BankName),494(Branch),505(AcctNo)
         #             IFSC: starts x≈389, y=494
         "box_fields": {
-            #                         pg  x_start  y_ctr  box_w  max
-            "name":        (0,  130.0, 152.0,  8.6,  35),   # First Name
-            "aadhar":      (0,  130.0, 185.0,  8.6,  16),   # Aadhaar (12 digits + spaces)
-            "mobile":      (0,  130.0, 196.0,  8.6,  12),   # Mobile 10 digits
-            "bankAccount": (0,  170.0, 508.0,  8.6,  25),   # Bank Account Number
-            "bankName":    (0,  170.0, 485.0,  8.6,  25),   # Bank Name
-            "ifsc":        (0,  389.0, 497.0,  8.6,  11),   # IFSC Code (4+7=11)
-            "address":     (0,  170.0, 280.0,  8.6,  25),   # City/Town
-            "bplNumber":   (0,  170.0, 540.0,  8.6,  20),   # Ration card no.
+            #                         pg  x_start  y_ctr   box_w  max
+            # Section a) — measured from get_drawings():
+            #   Vertical lines: 125.8, 140.0, 154.1... → box_w=14.2
+            #   Row centers from text blocks:
+            #     Row1 (First Name):  center=152.0
+            #     Row4 (Aadhaar):     center=184.6
+            #     Row5 (Mobile):      center=197.4
+            "name":        (0,  125.8, 152.0, 14.2, 22),   # First Name
+            "aadhar":      (0,  125.8, 184.6, 14.2, 16),   # Aadhaar (12 digits + 2 spaces)
+            "mobile":      (0,  125.8, 197.4, 14.2, 10),   # Mobile (10 digits)
+            # Section d) Bank — measured from get_text("words"):
+            #   box x_start=147.4, box_w=11.3 (158.7−147.4)
+            #   Row 1 "Name in Bank Account": center=475.9  (NOT FILLED — name auto-derived)
+            #   Row 2 "Bank Name":            center=487.2
+            #   Row 3 "Branch Name":          center=498.6  (IFSC starts x=401.5, box_w≈13.3)
+            #   Row 5 "Bank Account Number":  center=509.9
+            "bankName":    (0,  147.4, 487.2, 11.3, 20),   # d2 Bank Name
+            "ifsc":        (0,  401.5, 498.6, 13.3, 11),   # d3 IFSC Code (after "4. IFSC Code" label)
+            "bankAccount": (0,  147.4, 509.9, 11.3, 20),   # d5 Bank Account Number
+            # Section b) City/Town
+            "address":     (0,  147.4, 282.0, 11.3, 20),   # City/Town row
+            # Section e) Ration card no.
+            "bplNumber":   (0,  147.4, 541.0, 11.3, 18),   # Ration no.
         },
         "photo_rect": fitz.Rect(467, 112, 555, 170),
     },
