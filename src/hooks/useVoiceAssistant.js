@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { conversationConfig } from '../config/conversationQuestions';
+import { useState, useRef, useCallback } from 'react';
+import { conversationConfig, SCHEME_FIELD_ORDER, FIELD_QUESTIONS, PHRASES } from '../config/conversationQuestions';
 
 // States
 export const AI_STATE = {
@@ -178,24 +178,37 @@ export function useVoiceAssistant(scheme, onFieldUpdate, onSchemeChange, onDownl
         });
     };
 
-    // Action: Ask Question
+    // Get the ordered field list for this scheme
+    const getFieldOrder = useCallback(() => {
+        if (!scheme) return [];
+        return SCHEME_FIELD_ORDER[scheme.id] || scheme.fields || [];
+    }, [scheme]);
+
+    // Get question text for a field in the current language
+    const getQuestion = (fieldKey) => {
+        const langCode = language.split('-')[0]; // 'hi', 'gu', 'en'
+        return FIELD_QUESTIONS[fieldKey]?.[langCode]
+            || FIELD_QUESTIONS[fieldKey]?.hi
+            || `Please tell me your ${fieldKey}`;
+    };
+
+    // Action: Ask the next question by step index
     const askNextQuestion = (stepIndex, lang) => {
-        const fieldName = scheme.fields[stepIndex];
-        const question = conversationConfig.questions[lang][fieldName] || `Please tell me your ${fieldName}`;
+        const fields = getFieldOrder();
+        if (stepIndex >= fields.length) return;
+        const fieldKey = fields[stepIndex];
+        const question = getQuestion(fieldKey);
         speak(question);
     };
 
-    // Action: Process Response
+    // Action: Process Response — one field at a time
     const processResponse = async (transcript) => {
-        console.log(`🎤 Received Transcript: "${transcript}"`);
         if (!transcript) return;
-
         setState(AI_STATE.PROCESSING);
         addHistory('user', transcript);
 
-        // --- TRIAGE MODE ---
+        // ── TRIAGE MODE (no scheme selected yet) ───────────────────────────
         if (state === AI_STATE.TRIAGE) {
-            console.log("🕵️ Analyzing user problem...");
             try {
                 const response = await fetch('https://jan-sahayak-api.onrender.com/api/recommend-scheme', {
                     method: 'POST',
@@ -203,101 +216,76 @@ export function useVoiceAssistant(scheme, onFieldUpdate, onSchemeChange, onDownl
                     body: JSON.stringify({ transcript, language })
                 });
                 const data = await response.json();
-                console.log("💡 Recommendation:", data);
-
                 if (data.success) {
-                    speak(data.message, () => {
-                        if (onSchemeChange) onSchemeChange(data.scheme_id);
-                    });
+                    speak(data.message, () => { if (onSchemeChange) onSchemeChange(data.scheme_id); });
                 } else {
-                    speak(data.message); // Ask for clarification
+                    speak(data.message);
                 }
             } catch (e) {
-                console.error("Recommend Error:", e);
-                speak("Sorry, I am having trouble connecting to the server.");
+                speak(PHRASES.retry[language.split('-')[0]] || PHRASES.retry.hi);
             }
             return;
         }
 
-        // --- CONVERSATIONAL CHECK ---
-        // Enhanced regex to catch more natural language vs raw data
-        const isQuestionOrChat = /^(what|how|why|can|could|will|do|does|tell|help|hello|hi|hey|bot|ai|i need|reply|namaste|good|ok|thanks)/i.test(transcript);
+        // ── FORM FILLING MODE — step-by-step ───────────────────────────────
+        const fields = getFieldOrder();
+        const fieldKey = fields[currentStep];
+        const langCode = language.split('-')[0];
 
-        // Also if the transcript is long (> 4 words) it's likely a sentence, not typically a single field value unless it's an address
-        const isLongSentence = transcript.split(' ').length > 4;
+        // Clean the transcript to extract the field value
+        const value = extractValue(transcript, fieldKey);
 
-        // Address field is the exception where we expect long inputs
-        const isAddressField = currentField === 'address';
-
-        // Attempt Extraction
-        const cleanedValue = extractValue(transcript, currentField);
-        console.log(`🔍 Extracted Field [${currentField}]: "${cleanedValue}"`);
-
-        // PRIORITY DECISION MATRIX:
-        // 1. If it looks like a question/chat -> Chat
-        // 2. If valid value AND (not a long sentence OR is address) -> Form Fill
-        // 3. Otherwise -> Chat (Fallback to AI for clarity)
-
-        if (cleanedValue && !isQuestionOrChat && (!isLongSentence || isAddressField)) {
-            console.log("✅ Valid field data found. Acknowledging...");
-            const newData = { ...collectedData, [currentField]: cleanedValue };
+        if (value && value.length >= 1) {
+            // ✅ Got a valid answer — save it
+            const newData = { ...collectedData, [fieldKey]: value };
             setCollectedData(newData);
-            if (onFieldUpdate) onFieldUpdate(currentField, cleanedValue);
+            if (onFieldUpdate) onFieldUpdate(fieldKey, value);
 
-            const filler = getFiller(language, 'acknowledge');
-            const ack = `${filler} ${conversationConfig.verifications[language].gotIt} ${cleanedValue}`;
+            const ackFn = PHRASES.gotIt[langCode] || PHRASES.gotIt.hi;
+            const ack = typeof ackFn === 'function' ? ackFn(value) : ackFn;
 
-            speak(ack, () => {
-                if (currentStep < scheme.fields.length - 1) {
-                    setCurrentStep(prev => {
-                        const next = prev + 1;
-                        askNextQuestion(next, language);
-                        return next;
-                    });
-                } else {
-                    setState(AI_STATE.COMPLETED);
-                    speak(conversationConfig.questions[language].done);
-                }
-            });
-        }
-        else {
-            // FALLBACK TO AI (Chat)
-            console.log("⚠️ Input ambiguous or conversational. Asking Backend AI for Intent...");
-            try {
-                const response = await fetch('https://jan-sahayak-api.onrender.com/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ transcript, language, scheme: scheme ? 'general' : 'triage' })
+            const nextStep = currentStep + 1;
+
+            if (nextStep < fields.length) {
+                // More questions remain
+                speak(ack, () => {
+                    setCurrentStep(nextStep);
+                    askNextQuestion(nextStep, language);
                 });
+            } else {
+                // ✅ All fields collected!
+                setState(AI_STATE.COMPLETED);
+                const doneMsg = PHRASES.done[langCode] || PHRASES.done.hi;
+                speak(doneMsg);
 
-                const aiResponse = await response.json();
-                console.log(`🤖 Backend AI Response:`, aiResponse);
-
-                if (aiResponse && aiResponse.text) {
-                    const { text, action, scheme: targetScheme } = aiResponse;
-
-                    speak(text, () => {
-                        if (action === 'SWITCH_SCHEME' && targetScheme) {
-                            console.log(`🔄 Switching Scheme to: ${targetScheme}`);
-                            if (onSchemeChange) onSchemeChange(targetScheme);
-                        } else if (action === 'DOWNLOAD_PDF') {
-                            console.log(`📄 Triggering PDF Download`);
-                            if (onDownload) onDownload();
-                        } else {
-                            // If it was just a side-chat, assume we might stay on the current step or need to re-prompt
-                            // But asking repeatedly is annoying. Let's just wait for next input.
-                            // UNLESS the AI response was "I didn't understand", then maybe we re-prompt?
-                            // For now, let's just stay in listening state.
-                        }
+                // Auto-save to Supabase
+                try {
+                    await fetch('https://jan-sahayak-api.onrender.com/api/save-form', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            scheme: scheme?.id || 'unknown',
+                            mobile: newData.mobile || '',
+                            aadhar: newData.aadhar || '',
+                            fields: newData,
+                            status: 'completed'
+                        })
                     });
-                } else {
-                    console.warn("🤖 Gemini returned empty response.");
-                    speak(conversationConfig.verifications[language].retry);
+                    console.log('✅ Saved to Supabase');
+                } catch (e) {
+                    console.warn('Supabase save failed (non-critical):', e);
                 }
-            } catch (err) {
-                console.error("❌ AI Fallback Error:", err);
-                speak(conversationConfig.verifications[language].retry);
+
+                // Trigger PDF download
+                if (onDownload) setTimeout(onDownload, 2000);
             }
+        } else {
+            // ❌ Couldn't understand — gently retry
+            const retryMsg = PHRASES.retry[langCode] || PHRASES.retry.hi;
+            speak(retryMsg, () => {
+                // Re-ask the same question
+                askNextQuestion(currentStep, language);
+            });
         }
     };
 
