@@ -166,9 +166,9 @@ Example: {{"name": "Rajesh Kumar", "aadhar": "1234 5678 9012"}}
 If a field is not found, don't include it.
 """
         
-        # Call Claude via Bedrock
+        # Call Claude via Bedrock (Upgraded to 3.5 Sonnet)
         response = bedrock.invoke_model(
-            modelId="anthropic.claude-3-sonnet-20240229-v1:0",
+            modelId="anthropic.claude-3-5-sonnet-20240620-v1:0",
             body=json.dumps({
                 "anthropic_version": "bedrock-2023-05-31",
                 "max_tokens": 500,
