@@ -265,8 +265,8 @@ export default function FormFiller() {
                                         onChange={(e) => setChatInput(e.target.value)}
                                         placeholder="Type a message or say something..."
                                         onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && e.target.value.trim()) {
-                                                processResponse(e.target.value.trim());
+                                            if (e.key === 'Enter' && chatInput.trim()) {
+                                                processResponse(chatInput.trim());
                                                 setChatInput('');
                                             }
                                         }}

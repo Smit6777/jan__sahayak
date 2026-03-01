@@ -24,13 +24,18 @@ export default function VoiceInput({ onTranscript, disabled, autoStart }) {
     const audioContextRef = useRef(null);
     const analyserRef = useRef(null);
     const animationFrameRef = useRef(null);
+    const autoStartedRef = useRef(false);
 
-    // Auto-start listening if prop is true
+    // Auto-start listening if prop is true (guard with ref to prevent infinite loop)
     useEffect(() => {
-        if (autoStart && !isListening) {
+        if (autoStart && !isListening && !autoStartedRef.current) {
+            autoStartedRef.current = true;
             toggleListening();
         }
-    }, [autoStart]);
+        if (!autoStart) {
+            autoStartedRef.current = false;
+        }
+    }, [autoStart]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const transcriptRef = useRef(''); // Ref to access latest transcript in callbacks
 
@@ -251,29 +256,7 @@ export default function VoiceInput({ onTranscript, disabled, autoStart }) {
                 </div>
             )}
 
-            {/* Debug / Test Audio Button */}
-            <button
-                onClick={async () => {
-                    try {
-                        console.log("Testing Audio...");
-                        const response = await fetch('https://jan-sahayak-api.onrender.com/api/speak', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ text: "Hello, testing audio one two three.", language: "en-IN" })
-                        });
-                        const blob = await response.blob();
-                        const audio = new Audio(URL.createObjectURL(blob));
-                        await audio.play();
-                        console.log("Audio test playing...");
-                    } catch (e) {
-                        console.error("Test failed:", e);
-                        alert("Audio Test Failed: " + e.message);
-                    }
-                }}
-                style={{ marginTop: 10, fontSize: 10, opacity: 0.7 }}
-            >
-                🔊 Test Sound
-            </button>
+
 
             <div className="voice-instructions">
                 <p>💡 Examples:</p>
