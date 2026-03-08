@@ -5,14 +5,16 @@ import Scene3D from '../components/Scene3D';
 import VoiceInput from '../components/VoiceInput';
 import AadharUpload from '../components/AadharUpload';
 import AssistantWidget from '../components/AssistantWidget';
+import SubtitleBar from '../components/SubtitleBar';
 import { useVoiceAssistant, AI_STATE } from '../hooks/useVoiceAssistant';
+import API_BASE from '../config/api';
 import './FormFiller.css';
 
 const schemes = {
     'pm-kisan': {
         name: 'PM Kisan Samman Nidhi',
         icon: '🌾',
-        fields: ['name', 'fatherName', 'aadhar', 'mobile', 'bankAccount', 'ifsc', 'address', 'landArea']
+        fields: ['state', 'district', 'subDistrict', 'village', 'name', 'fatherName', 'gender', 'category', 'aadhar', 'mobile', 'address', 'pinCode', 'ifsc', 'bankName', 'bankAccount']
     },
     'vidhva-sahay': {
         name: 'Vidhva Sahay Yojana',
@@ -37,7 +39,7 @@ const schemes = {
     'ujjwala': {
         name: 'Ujjwala Yojana',
         icon: '🔥',
-        fields: ['name', 'aadhar', 'mobile', 'address', 'bankAccount', 'ifsc', 'bplNumber']
+        fields: ['name', 'dob', 'category', 'aadhar', 'mobile', 'houseName', 'street', 'village', 'district', 'state', 'pinCode', 'bankName', 'branchName', 'ifsc', 'bankAccount', 'bplNumber']
     },
     'sukanya-samriddhi': {
         name: 'Sukanya Samriddhi',
@@ -73,7 +75,18 @@ const fieldLabels = {
     bplNumber: 'BPL Number',
     daughterName: "Daughter's Name",
     daughterDOB: "Daughter's DOB",
-    cropType: 'Crop Type'
+    dob: "Date of Birth",
+    cropType: 'Crop Type',
+    houseName: 'House/Flat No.',
+    street: 'Street/Road',
+    village: 'Village/Panchayat',
+    district: 'District',
+    subDistrict: 'Sub-District/Taluka',
+    state: 'State',
+    pinCode: 'PIN Code',
+    gender: 'Gender (Male/Female)',
+    branchName: 'Bank Branch Name',
+    bankName: 'Bank Name'
 };
 
 export default function FormFiller() {
@@ -91,6 +104,7 @@ export default function FormFiller() {
     const [inputMode, setInputMode] = useState(searchParams.get('mode') || 'manual');
     const [formData, setFormData] = useState({});
     const [chatInput, setChatInput] = useState("");
+    const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
     // Document uploads
     const [photoFile, setPhotoFile] = useState(null);
@@ -115,10 +129,10 @@ export default function FormFiller() {
     // Voice Assistant Hook
     const {
         state: aiState,
-        currentField,
         conversationHistory,
         startConversation,
-        processResponse
+        processResponse,
+        currentSpeech
     } = useVoiceAssistant(
         scheme,
         (field, value) => {
@@ -131,11 +145,14 @@ export default function FormFiller() {
         // Action: DOWNLOAD_PDF
         async () => {
             try {
+                setIsGeneratingPDF(true);
+                // Simulate processing delay so user feels reassurance that their form is being officially generated
+                await new Promise(resolve => setTimeout(resolve, 2500));
+
                 // Submit form data to backend to generate PDF
-                const response = await fetch('https://jan-sahayak-api.onrender.com/api/fill-form', {
+                const response = await fetch(`${API_BASE}/api/fill-form`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ scheme: schemeId, fields: formData })
+                    body: buildFormPayload()
                 });
 
                 if (response.ok) {
@@ -143,15 +160,18 @@ export default function FormFiller() {
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `${schemeId}_filled.pdf`;
+                    a.download = `${schemeId}_official_form.pdf`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
                 } else {
                     console.error("PDF Download failed");
+                    alert("Failed to format the official PDF.");
                 }
             } catch (e) {
                 console.error("PDF Error:", e);
+            } finally {
+                setIsGeneratingPDF(false);
             }
         }
     );
@@ -166,10 +186,19 @@ export default function FormFiller() {
         processResponse(transcript);
     };
 
-    // Manual Submit Handler
+    // Auto-start AI conversation when switching to voice mode
+    useEffect(() => {
+        if (inputMode === 'voice' && aiState === AI_STATE.IDLE) {
+            // Small delay to let the UI render first
+            const timer = setTimeout(() => startConversation('hi-IN'), 600);
+            return () => clearTimeout(timer);
+        }
+    }, [inputMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
     const handleManualSubmit = async () => {
         try {
-            const response = await fetch('https://jan-sahayak-api.onrender.com/api/fill-form', {
+            setIsGeneratingPDF(true);
+            const response = await fetch(`${API_BASE}/api/fill-form`, {
                 method: 'POST',
                 body: buildFormPayload()
             });
@@ -190,12 +219,33 @@ export default function FormFiller() {
         } catch (e) {
             console.error("Manual Submit Error:", e);
             alert("❌ Network Error. Is backend running?");
+        } finally {
+            setIsGeneratingPDF(false);
         }
     };
 
     return (
         <div className="form-filler-page">
+            {/* Live AI speech subtitles — shows what assistant is saying */}
+            <SubtitleBar text={currentSpeech} isVisible={aiState === 'speaking'} />
             <Scene3D variant="form" />
+
+            <AnimatePresence>
+                {isGeneratingPDF && (
+                    <motion.div 
+                        className="pdf-loading-overlay"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <div className="pdf-loading-modal">
+                            <div className="pdf-spinner"></div>
+                            <h2>🏛️ Generating Official Form</h2>
+                            <p>Please wait while we validate your details and format your application...</p>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="page-content conversation-layout">
                 {/* Header */}

@@ -1,95 +1,174 @@
-# Jan-Sahayak: Voice-First Governance for Bharat 🇮🇳
+# 🇮🇳 Jan-Sahayak — AI-Powered Government Form Assistant
 
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![AWS Textract](https://img.shields.io/badge/AWS-Textract-orange)
-![AWS Bedrock](https://img.shields.io/badge/AWS-Bedrock_Claude_3.5-blue)
-![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688)
-![React](https://img.shields.io/badge/Frontend-React_19-blue)
+> **Ek Awaaz. Ek Form. Ek Bharat.**
+> *One Voice. One Form. One India.*
 
-*An AI-powered multilingual assistant designed to bridge the digital divide in rural India by making government schemes accessible through natural conversation.*
-
-**Live Prototype:** [https://smit6777.github.io/jan__sahayak/](https://smit6777.github.io/jan__sahayak/)
+[![AI for Bharat Hackathon](https://img.shields.io/badge/AI%20for%20Bharat-Hackathon%202026-orange)](https://aibharat.in)
+[![Built with AWS Bedrock](https://img.shields.io/badge/Built%20with-AWS%20Bedrock-yellow)](https://aws.amazon.com/bedrock/)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB)](https://react.dev/)
 
 ---
 
-## 🚀 The Problem Statement
-Accessing government assistance in rural India remains a massive challenge due to **complex bureaucracy, language barriers, and low digital literacy**. Typical online forms require users to read formal language, type precisely, and navigate confusing dropdowns. This forces citizens, particularly farmers, widows, and the elderly, to rely on costly middlemen to file baseline paperwork.
+## 🎯 What is Jan-Sahayak?
 
-## 💡 Our Solution
-**Jan-Sahayak** acts as a virtual government worker. Rather than forcing the user to learn how to click through a form, citizens simply speak to our AI in their native language (Hindi, Gujarati, English).
+Jan-Sahayak is a **voice-first AI assistant** that helps rural Indian citizens fill government forms and access government schemes — in their own language, without needing to read or write.
 
-### Key Features
-1. **Intelligent Triage:** If a user says "My crops failed", the AI analyzes the intent and recommends the ideal scheme (e.g., *PM Kisan Scheme*).
-2. **Conversational Form Filling:** The AI verbally asks for details one-by-one (Name, Aadhar, Bank Info). It handles tangents gracefully.
-3. **Smart Prompt Extraction (AWS Bedrock):** Our backend uses **Claude 3.5 Sonnet on AWS Bedrock** to extract structured JSON data perfectly from unstructured voice transcripts.
-4. **Document OCR (AWS Textract):** Users can upload an image of their Aadhar card. Our backend sends it to **Amazon Textract** to auto-fill the digital form via OCR.
-5. **PDF Generation:** Once the AI has gathered the data, it programmatically generates a beautifully filled PDF application (with localized Hindi/English headers) ready for official submission.
+Instead of navigating complex government websites, users just **speak naturally** ("Mujhe khet ki madad chahiye" - I need farming help), and Jan-Sahayak:
+1. Identifies the right government scheme
+2. Collects all required information through friendly conversation
+3. Generates the **official, correctly formatted government PDF** instantly
+4. Ready to download, print, and submit
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## 🏛️ Supported Government Schemes (8 Schemes)
 
-Jan-Sahayak follows a scalable, microservices client-server architecture deployed on the cloud.
+| Scheme | Benefit |
+|--------|---------|
+| 🌾 PM Kisan Samman Nidhi | ₹6,000/year cash transfer to farmers |
+| 🔥 PM Ujjwala Yojana | Free LPG gas connection |
+| 🍚 Ration Card Application | Subsidized food grains |
+| 🏥 Ayushman Bharat (PMJAY) | ₹5 lakh/year free health insurance |
+| 🏗️ PM Awas Yojana | Housing subsidy for poor families |
+| 🏠 Vidhva Sahay | ₹1,250/month pension for widows |
+| 👧 Sukanya Samriddhi Yojana | Savings scheme for girl child |
+| 💳 Kisan Credit Card | Agricultural credit up to ₹3 lakh |
 
-```mermaid
-graph TD
-    A[Citizen / User] -->|Speaks / Uploads Aadhar| B(React Frontend - GitHub Pages)
-    B -->|Audio Web Speech API| C{Voice Assistant Context State}
-    C -->|Transcript via REST API| D[FastAPI Backend - Render.com]
-    
-    D -.->|Prompt engineering| E[AWS Bedrock: Claude 3.5]
-    E -.->|Returns JSON fields| D
-    
-    B -->|Image via REST API| D
-    D -.->|Document OCR| F[Amazon Textract]
-    F -.->|Returns Extracted Text| D
-    
-    D -->|Synthesizes voice| G[gTTS MP3 Generator]
-    D -->|Draws Form Fields| H[ReportLab PDF Engine]
-    
-    G --> B
-    H -->|Downloads PDF| B
+---
+
+## 🗣️ Languages Supported
+- **Hindi** (hi-IN)
+- **Gujarati** (gu-IN)  
+- **English** (en-IN)
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **React + Vite** — Fast, modern UI
+- **Three.js** — 3D animated backgrounds
+- **Framer Motion** — Smooth animations
+- **Web Speech API** — Browser-native voice recognition + speech synthesis
+
+### Backend
+- **FastAPI** — Python REST API
+- **AWS Bedrock (Claude 3 Haiku)** — AI conversation + form field extraction
+- **PyMuPDF (fitz)** — Exact coordinate PDF generation on real government forms
+- **Supabase** — Grievance and submission tracking
+- **AWS Lambda** — Serverless deployment
+
+---
+
+## 🏗️ Architecture
+
+```
+User (Voice/Text)
+       ↓
+React Frontend (Browser)
+       ↓  REST API
+FastAPI Backend (AWS Lambda)
+       ↓
+AWS Bedrock → Claude 3 Haiku
+       ↓ JSON extraction
+PyMuPDF PDF Generator
+       ↓
+Official Government PDF ✅
 ```
 
-### Components
-*   **Frontend**: React 19 + Vite, Framer Motion (for the interactive 3D listening orb), Web Speech API. Hosted on **GitHub Pages**.
-*   **Backend API**: Python FastAPI, deployed live on **Render.com**.
-*   **AI Engine**: AWS Bedrock (Claude 3.5 Sonnet) for reliable Hindi NLP extraction.
-*   **OCR Engine**: Amazon Textract (boto3) for Aadhar card parsing.
-*   **Audio Output**: Server-side gTTS (Google Text-to-Speech) for localized Indian accents.
-
 ---
 
-## ⚙️ Running Locally
+## 🚀 How to Run Locally
 
-### Prerequisites
-*   Node.js (v18+)
-*   Python (3.9+)
-*   AWS Account with Bedrock & Textract access keys
-
-### 1. Start the Backend (FastAPI)
+### 1. Clone the repo
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-pip install -r requirements.txt
-
-# Create a .env file
-# Add your AWS keys to enable real AI extraction
-cp .env.example .env
-# Edit .env and set DEMO_MODE=false to use AWS Bedrock
-
-# Run the server on http://localhost:8000
-python main.py
+git clone https://github.com/your-username/jan-sahayak.git
+cd jan-sahayak
 ```
 
-### 2. Start the Frontend (React)
+### 2. Frontend
 ```bash
-# From the root directory
 npm install
 npm run dev
-# App will run on http://localhost:5173
+# Runs at http://localhost:5173
+```
+
+### 3. Backend
+```bash
+cd backend
+pip install -r requirements.txt
+python main.py
+# Runs at http://localhost:8000
+```
+
+### 4. Environment Variables
+Create `backend/.env`:
+```
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+AWS_ACCESS_KEY_ID=your_key
+AWS_SECRET_ACCESS_KEY=your_secret
+AWS_REGION=us-east-1
+DEMO_MODE=false
 ```
 
 ---
-**Built for the Hack2skill AI for Bharat Hackathon 2026 - Prototype Phase**
+
+## 📄 How PDF Generation Works
+
+Jan-Sahayak downloads the **real official government PDFs** and overlays the user's data at precise coordinates using PyMuPDF:
+
+1. Official form template loaded (e.g., `pm-kisan.pdf`)
+2. Field coordinates precisely mapped (X, Y in PDF points)
+3. Text inserted at exact positions using Helvetica font
+4. For box-grid forms (Ujjwala): one character per box, exact width
+5. For checkbox fields (Gender, Category): dynamic X offset to correct box
+
+---
+
+## 🌐 Live Demo
+
+**API (Render):** https://jan-sahayak-api.onrender.com
+
+---
+
+## 📁 Project Structure
+
+```
+jan-sahayak/
+├── src/
+│   ├── pages/
+│   │   ├── Home.jsx            # Landing page (3D animated)
+│   │   ├── FormFiller.jsx      # Main voice + form UI
+│   │   ├── Adhikar.jsx         # Know Your Rights
+│   │   ├── Gramvani.jsx        # File Complaints
+│   │   └── Shikayat.jsx        # Grievance Tracking
+│   ├── hooks/
+│   │   └── useVoiceAssistant.js # AI conversation state machine
+│   └── config/
+│       └── conversationQuestions.js # Multilingual question bank
+├── backend/
+│   ├── main.py                 # FastAPI server
+│   ├── services/
+│   │   ├── bedrock_agent.py    # Claude 3 AI extraction
+│   │   ├── pdf_generator.py    # PDF coordinate mapping
+│   │   └── textract_service.py # Aadhaar OCR
+│   └── forms/                  # Downloaded government PDFs
+└── README.md
+```
+
+---
+
+## 🏆 AI for Bharat Hackathon 2026
+
+Built for the **AI for Bharat Hackathon 2026** using:
+- ✅ Amazon Bedrock (Claude 3 Haiku)
+- ✅ AWS Lambda (Serverless API)
+- ✅ AWS Textract (Document OCR)
+
+> Addressing UN SDG 1 (No Poverty), SDG 10 (Reduced Inequalities), SDG 16 (Strong Institutions)
+
+---
+
+*Made with ❤️ for Bharat*

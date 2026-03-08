@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Scene3D from '../components/Scene3D';
+import WelcomeModal from '../components/WelcomeModal';
 import './Home.css';
+import { useLanguage } from '../context/LanguageContext';
+import { translations } from '../config/translations';
 
 const schemes = [
     {
@@ -101,9 +104,21 @@ const features = [
 export default function Home() {
     const navigate = useNavigate();
     const [hoveredScheme, setHoveredScheme] = useState(null);
+    const { language, setLanguage } = useLanguage();
+    const t = translations[language] || translations['en'];
+
+    // Visitor counter — increments on each unique session
+    const [visitorCount, setVisitorCount] = useState(0);
+    useEffect(() => {
+        const stored = parseInt(localStorage.getItem('js_visitors') || '1247', 10);
+        const bumped = stored + 1;
+        localStorage.setItem('js_visitors', String(bumped));
+        setVisitorCount(bumped);
+    }, []);
 
     return (
         <div className="home-page">
+            <WelcomeModal />
             <div className="scanlines"></div>
             {/* 3D Background */}
             <Scene3D variant="home" />
@@ -118,12 +133,30 @@ export default function Home() {
                             <span className="logo-text">Jan-Sahayak</span>
                         </div>
                         <div className="nav-links">
-                            <a href="#features">Features</a>
-                            <a href="#schemes">Schemes</a>
-                            <Link to="/form" className="btn btn-primary">Start Filling →</Link>
+                            <select
+                                value={language}
+                                onChange={(e) => setLanguage(e.target.value)}
+                                className="nav-language-select"
+                            >
+                                <option value="en">English</option>
+                                <option value="hi">हिंदी</option>
+                                <option value="gu">ગુજરાતી</option>
+                            </select>
+                            <Link to="/gramvani">📰 ग्रामवाणी</Link>
+                            <Link to="/adhikar">⚖️ अधिकार</Link>
+                            <Link to="/shikayat">📣 शिकायत</Link>
+                            <Link to="/history">{t.nav.history}</Link>
+                            <Link to="/form" className="btn btn-primary">{t.nav.startFilling}</Link>
                         </div>
                     </div>
                 </nav>
+
+                {/* Helpline Banner */}
+                <div className="helpline-banner">
+                    <span className="helpline-icon">📞</span>
+                    <span className="helpline-text">सरकारी सहायता हेल्पलाइन: <strong>1800-180-1551</strong> (24×7 निःशुल्क)</span>
+                    <a href="tel:18001801551" className="helpline-call-btn">अभी कॉल करें</a>
+                </div>
 
                 {/* Hero Section */}
                 <section className="hero">
@@ -139,23 +172,24 @@ export default function Home() {
                         </motion.div>
 
                         <motion.h1
-                            className="hero-title"
+                            key={`h1-${language}`}
+                            className="hero-title language-fade"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.1 }}
                         >
-                            Government Forms, <br />
-                            <span className="text-gradient">Filled by AI</span>
+                            {t.hero.title1} <br />
+                            <span className="text-gradient">{t.hero.title2}</span>
                         </motion.h1>
 
                         <motion.p
-                            className="hero-subtitle"
+                            key={`p-${language}`}
+                            className="hero-subtitle language-fade"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.2 }}
                         >
-                            Stop struggling with complex forms. Just speak or upload your Aadhar -
-                            our AI fills PM Kisan, Ration Card & more in seconds.
+                            {t.hero.subtitle}
                         </motion.p>
 
                         <motion.div
@@ -180,36 +214,82 @@ export default function Home() {
                         >
                             <div className="stat">
                                 <span className="stat-value">8</span>
-                                <span className="stat-label">Schemes Supported</span>
+                                <span className="stat-label">{t.hero.stats.schemes}</span>
                             </div>
                             <div className="stat">
                                 <span className="stat-value">&lt;2min</span>
-                                <span className="stat-label">Form Completion</span>
+                                <span className="stat-label">{t.hero.stats.time}</span>
                             </div>
                             <div className="stat">
                                 <span className="stat-value">100%</span>
-                                <span className="stat-label">Free to Use</span>
+                                <span className="stat-label">{t.hero.stats.free}</span>
+                            </div>
+                            <div className="stat">
+                                <span className="stat-value">{visitorCount.toLocaleString('en-IN')}</span>
+                                <span className="stat-label">👁️ Visitors</span>
                             </div>
                         </motion.div>
 
-                        {/* BIG RED MIC BUTTON (Accessibility) */}
+                        {/* MEGA MIC — FARMER FIRST DESIGN */}
                         <motion.div
-                            className="mic-button-container"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 0.8, type: 'spring' }}
+                            className="mega-mic-container"
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: 0.4, type: 'spring', stiffness: 100 }}
                         >
+                            {/* Bouncing arrows */}
+                            <div className="mega-mic-arrows">
+                                {[0, 0.15, 0.3].map((d, i) => (
+                                    <motion.span key={i}
+                                        animate={{ y: [0, 10, 0] }}
+                                        transition={{ duration: 1, repeat: Infinity, delay: d }}
+                                        style={{ fontSize: '1.5rem' }}>⬇️</motion.span>
+                                ))}
+                            </div>
+
                             <button
-                                className="big-red-mic"
+                                className="mega-mic-btn"
                                 onClick={() => navigate('/form?mode=voice')}
-                                aria-label="Start Voice Assistant"
-                            >
-                                <div className="mic-icon">🎙️</div>
-                                <div className="mic-pulse"></div>
-                                <div className="mic-pulse delay-1"></div>
+                                aria-label="बोलो — AI आपकी मदद करेगा">
+                                {/* Pulsing rings */}
+                                <div className="mega-ring mega-ring-1" />
+                                <div className="mega-ring mega-ring-2" />
+                                <div className="mega-ring mega-ring-3" />
+                                <span className="mega-mic-icon">🎙️</span>
                             </button>
-                            <p className="mic-label">बोलने के लिए दबाएं (Tap to Speak)</p>
+
+                            <p className="mega-label-hi">यहाँ दबाएं और बोलें</p>
+                            <p className="mega-label-en">Press &amp; Speak — AI fills your form</p>
+                            <p className="mega-label-gu">અહીં દબાવો અને બોલો</p>
                         </motion.div>
+                    </div>
+                </section>
+
+                {/* Quick Nav Section — Gramvani / Adhikar / Shikayat */}
+                <section className="quick-nav-section">
+                    <div className="container">
+                        <div className="quick-nav-grid">
+                            {[
+                                { to: '/gramvani', icon: '📰', label: 'ग्रामवाणी', sub: 'Latest scheme news', color: '#22c55e' },
+                                { to: '/adhikar', icon: '⚖️', label: 'अधिकार', sub: 'Know your rights', color: '#f59e0b' },
+                                { to: '/shikayat', icon: '📣', label: 'शिकायत', sub: 'File a complaint', color: '#ef4444' },
+                            ].map((item) => (
+                                <motion.div key={item.to}
+                                    className="quick-nav-card"
+                                    style={{ borderColor: item.color + '44' }}
+                                    whileHover={{ scale: 1.05, borderColor: item.color }}
+                                    whileTap={{ scale: 0.97 }}
+                                    onClick={() => navigate(item.to)}
+                                >
+                                    <span className="qnc-icon">{item.icon}</span>
+                                    <div>
+                                        <h4 className="qnc-label" style={{ color: item.color }}>{item.label}</h4>
+                                        <p className="qnc-sub">{item.sub}</p>
+                                    </div>
+                                    <span className="qnc-arrow">→</span>
+                                </motion.div>
+                            ))}
+                        </div>
                     </div>
                 </section>
 
@@ -217,13 +297,14 @@ export default function Home() {
                 <section id="features" className="features-section">
                     <div className="container">
                         <motion.div
-                            className="section-header"
+                            key={`feat-${language}`}
+                            className="section-header language-fade"
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                         >
-                            <h2>How <span className="text-gradient">Jan-Sahayak</span> Works</h2>
-                            <p>Simple, fast, and accurate form filling for everyone</p>
+                            <h2>{t.features.title1}<span className="text-gradient">{t.features.title2}</span>{t.features.title3}</h2>
+                            <p>{t.features.subtitle}</p>
                         </motion.div>
 
                         <div className="features-grid">
@@ -252,13 +333,14 @@ export default function Home() {
                 <section id="schemes" className="schemes-section">
                     <div className="container">
                         <motion.div
-                            className="section-header"
+                            key={`schm-${language}`}
+                            className="section-header language-fade"
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                         >
-                            <h2>Supported <span className="text-gradient">Government Schemes</span></h2>
-                            <p>Select a scheme and start filling your form</p>
+                            <h2>{t.schemes.title1}<span className="text-gradient">{t.schemes.title2}</span></h2>
+                            <p>{t.schemes.subtitle}</p>
                         </motion.div>
 
                         <div className="schemes-grid">
@@ -296,15 +378,15 @@ export default function Home() {
                                     >
                                         {scheme.icon}
                                     </motion.div>
-                                    <h3>{scheme.name}</h3>
-                                    <span className="scheme-name-hi">{scheme.nameHi}</span>
+                                    <h3>{language === 'hi' || language === 'gu' ? scheme.nameHi : scheme.name}</h3>
+                                    <span className="scheme-name-hi">{language === 'en' ? scheme.nameHi : ''}</span>
                                     <p>{scheme.description}</p>
                                     <Link
                                         to={`/form?scheme=${scheme.id}`}
                                         className="scheme-btn"
                                         style={{ background: scheme.color }}
                                     >
-                                        <span>Fill This Form</span>
+                                        <span>{t.schemes.btn}</span>
                                         <motion.span
                                             animate={{ x: hoveredScheme === scheme.id ? 5 : 0 }}
                                         >
@@ -321,15 +403,16 @@ export default function Home() {
                 <section className="cta-section">
                     <div className="container">
                         <motion.div
-                            className="cta-card glass-card"
+                            key={`cta-${language}`}
+                            className="cta-card glass-card language-fade"
                             initial={{ opacity: 0, scale: 0.9 }}
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                         >
-                            <h2>Ready to Fill Your Form?</h2>
-                            <p>No more confusion. No more mistakes. Let AI do the hard work.</p>
+                            <h2>{t.cta.title}</h2>
+                            <p>{t.cta.subtitle}</p>
                             <Link to="/form" className="btn btn-primary btn-lg">
-                                <span>✨</span> Start Now - It's Free
+                                <span>✨</span> {t.cta.btn}
                             </Link>
                         </motion.div>
                     </div>
@@ -343,7 +426,7 @@ export default function Home() {
                             <span>Jan-Sahayak</span>
                         </div>
                         <p className="footer-text">
-                            Built with ❤️ for AI for Bharat Hackathon 2026 | Powered by AWS Bedrock
+                            {t.footer}
                         </p>
                     </div>
                 </footer>

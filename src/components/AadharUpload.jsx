@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import API_BASE from '../config/api';
 
 export default function AadharUpload({ onExtractedData, disabled }) {
     const [isDragging, setIsDragging] = useState(false);
@@ -54,7 +55,7 @@ export default function AadharUpload({ onExtractedData, disabled }) {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await fetch('https://jan-sahayak-api.onrender.com/api/extract-from-image', {
+            const response = await fetch(`${API_BASE}/api/extract-from-image`, {
                 method: 'POST',
                 body: formData
             });

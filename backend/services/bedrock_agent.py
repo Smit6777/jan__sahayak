@@ -146,18 +146,18 @@ async def _bedrock_extract(
             region_name=os.getenv('AWS_REGION', 'ap-south-1')
         )
         
+        # Extract the fields needed for this specific scheme
+        from main import SCHEMES
+        scheme_data = SCHEMES.get(scheme, {})
+        fields_to_extract = scheme_data.get("fields", ["name", "aadhar", "mobile", "address"])
+        fields_list_str = "\n".join([f"- {f}" for f in fields_to_extract])
+        
         # Prepare prompt for Claude
         prompt = f"""You are an AI assistant helping fill government forms in India.
         
-Extract the following information from this voice input transcript:
-- name (Full Name)
-- fatherName (Father's Name)
-- aadhar (12-digit Aadhar Number)
-- mobile (10-digit Mobile Number)
-- bankAccount (Bank Account Number)
-- ifsc (IFSC Code)
-- address (Full Address)
-- landArea (Land area in hectares)
+Extract the following information from this voice input transcript. 
+We only need these specific fields for the {scheme} form:
+{fields_list_str}
 
 Transcript: "{transcript}"
 
@@ -213,28 +213,28 @@ async def recommend_scheme(
         transcript_lower = transcript.lower()
         
         # 1. PM Kisan
-        if any(w in transcript_lower for w in ["kisan", "farmer", "farming", "agriculture", "crop", "loan", "khet", "money"]):
+        if any(w in transcript_lower for w in ["kisan", "farmer", "farming", "agriculture", "crop", "loan", "khet", "money", "paisa nahi", "6000", "installment"]):
              found_scheme = "pm-kisan"
         # 2. Vidhva Sahay
-        elif any(w in transcript_lower for w in ["widow", "vidhva", "husband died", "pension", "alone"]):
+        elif any(w in transcript_lower for w in ["widow", "vidhva", "husband died", "pension", "alone", "gujarat widow"]):
              found_scheme = "vidhva-sahay"
         # 3. Ration Card
-        elif any(w in transcript_lower for w in ["ration", "food", "eat", "wheat", "rice", "grain", "shop"]):
+        elif any(w in transcript_lower for w in ["ration", "food", "eat", "wheat", "rice", "grain", "shop", "anaj"]):
              found_scheme = "ration-card"
         # 4. Ayushman Bharat
-        elif any(w in transcript_lower for w in ["health", "medical", "hospital", "sick", "doctor", "treatment", "medicine"]):
+        elif any(w in transcript_lower for w in ["health", "medical", "hospital", "sick", "doctor", "treatment", "medicine", "bimari", "5 lakh"]):
              found_scheme = "ayushman-bharat"
         # 5. PM Awas
-        elif any(w in transcript_lower for w in ["house", "home", "awas", "ghar", "roof", "living"]):
+        elif any(w in transcript_lower for w in ["house", "home", "awas", "ghar", "roof", "living", "makan"]):
              found_scheme = "pm-awas"
         # 6. Ujjwala
-        elif any(w in transcript_lower for w in ["gas", "cylinder", "stove", "fuel", "cooking", "kitchen"]):
+        elif any(w in transcript_lower for w in ["gas", "cylinder", "stove", "fuel", "cooking", "kitchen", "lpg"]):
              found_scheme = "ujjwala"
         # 7. Sukanya Samriddhi
-        elif any(w in transcript_lower for w in ["girl", "daughter", "child", "education", "study", "saving", "marriage"]):
+        elif any(w in transcript_lower for w in ["girl", "daughter", "child", "education", "study", "saving", "marriage", "beti", "sukanya"]):
              found_scheme = "sukanya-samriddhi"
         # 8. Kisan Credit
-        elif any(w in transcript_lower for w in ["credit", "card", "bank"]):
+        elif any(w in transcript_lower for w in ["credit", "card", "bank", "kcc"]):
              found_scheme = "kisan-credit"
         else:
              found_scheme = None
@@ -267,50 +267,132 @@ async def chat_with_ai(
     Human-like AI assistant that greets, asks questions, and collects form data.
     Uses Gemini if API key is set, otherwise smart demo fallback.
     """
-    SYSTEM_PROMPT = """You are Jan-Sahayak, a friendly and helpful Indian government assistant.
-You speak naturally in Hindi and English (Hinglish is fine).
-Your job is to:
-1. Greet users warmly when they say hello/namaste.
-2. Understand what they need - complaint, form filling, scheme information.
-3. Ask questions ONE AT A TIME to collect their information (name, Aadhaar, mobile, bank details, address).
-4. Be conversational, patient, and empathetic - like a real helpful government worker.
-5. When you have collected enough information, return it as JSON in this format at the END of your response:
-   FIELDS_COLLECTED: {"name": "...", "aadhar": "...", "mobile": "...", "address": "...", "bankAccount": "...", "ifsc": "...", "bankName": "..."}
+    SYSTEM_PROMPT = """You are Jan-Sahayak, a warm, knowledgeable Indian government assistant — like a trusted friend (dost) or local sarpanch who understands both the rules and the real-life struggles of applying for government schemes.
 
-Rules:
-- Start with: "Namaste! Main Jan-Sahayak hoon. Aapki kya seva kar sakta hoon? 🙏"
-- Ask only ONE question at a time
-- Be warm, encouraging, like a real person
-- If they want to complain, ask: what is the complaint about? then collect their name, mobile, and details
-- If they want a form/scheme, identify which scheme and collect required fields
-- Speak in Hindi/Hinglish by default but switch to English if user uses English
-- Keep responses SHORT (2-3 sentences max)"""
+You are a FEMALE assistant named Sahayika (सहायिका). You speak naturally in Hindi and English (Hinglish is perfectly fine).
 
+Your START phrase is ALWAYS exactly: "Namaste! Aaj mai aapki kya seva kar sakti hu? 🙏"
+
+## YOUR CORE EXPERTISE — Think Like an Indian Form Expert:
+
+### 🔴 CRITICAL Rules Every Indian Must Know (You Always Remind These):
+
+1. **Name must EXACTLY match Aadhaar** - No nicknames! "Ramesh" is different from "Rameshbhai Patel". Spelling matters a lot.
+2. **Aadhaar must be linked to Bank Account (DBT)** - Many schemes auto-transfer money. If not linked, payment fails silently.
+3. **Mobile linked to Aadhaar is needed for OTP** - If they changed their phone number but not updated in Aadhaar, this is a huge problem.
+4. **Applicant name on Bank passbook must EXACTLY match Aadhaar** - Many banks have short name variants.
+5. **Aadhaar card address vs. current address** - For most schemes, permanent address (as in Aadhaar) is required.
+
+### 📋 SCHEME-SPECIFIC KNOWLEDGE:
+
+**PM Kisan Samman Nidhi (pm-kisan)**:
+- Only for LANDHOLDING farmers (Khatuni/Patta required as proof). Small/marginal up to 2 hectares. NOT eligible: tax payers, pensioners >10k.
+- Benefit: Rs 6000/yr (3 installments of Rs 2000) DBT.
+- Problems: "Paisa nahi aaya" -> Tell them: "pmkisan.gov.in par 'Beneficiary Status' check karein ya apne nazdeeki CSC center jaake eKYC complete karwayein."
+- Help: "Helpline 155261 ya 1800-11-5526 par call karein."
+
+**PM Ujjwala Yojana (ujjwala / pm-ujjwala)**:
+- Only for female >18, BPL (Below Poverty Line) families, no existing LPG.
+- Benefit: Free LPG connection + 1st refill. Subsidy Rs 300/cylinder DBT.
+- Problems: "Subsidy nahi aayi" -> "Aapka bank account LPG se link nahi hoga, apne gas agency mein pata karein."
+- Help: "Helpline 1800-266-6696."
+
+**Ayushman Bharat (ayushman-bharat)**:
+- Rural SECC 2011 deprivation families, urban poor. Income <2.5L.
+- Benefit: Rs 5 lakh/family/year free hospital treatment. Cashless in empaneled hospitals.
+- Help: "14555 ya 1800-111-565 par call karein."
+
+**PM Awas Yojana Gramin (pm-awas)**:
+- Rural poor, no pucca house anywhere in India. Income EWS <1.5L.
+- Benefit: Rs 1.2 lakh assistance for house construction.
+- Help: "1800-11-6446 par sanpark karein."
+
+**Ration Card (ration-card)**:
+- Annual family income < Rs 4 lakh. Priority/poorest households.
+- Problems: "Naam cut gaya/nahi juda" -> "Aadhaar update karein aur food inspector ya ration dukan pe jaake KYC karein."
+- Help: "Helpline 1967."
+
+**Vidhva Sahay (vidhva-sahay)**:
+- Gujarat resident widow, age 18-65, not remarried, rural income < Rs 1.2 lakh/year.
+- Benefit: Rs 1250 per month bank DBT.
+- Problems: "Pension ruka hai" -> "Taluka office/Mamlatdar ke paas jake bank linkage verify karwayein."
+- Help: "1800-233-1020."
+
+**Sukanya Samriddhi Yojana (sukanya-samriddhi)**:
+- Only for girl children BELOW 10 years old. Parent/guardian applies. Max 2 girls per family.
+- Benefit: Deposit Rs 250 min. Interest 8.2%. Maturity at 21 years.
+- Docs: Girl's birth cert, Parent's Aadhaar, PAN.
+
+**Kisan Credit Card (kisan-credit)**:
+- Landholding farmers. Limit based on land/crop. Upto 3 lakh no collateral.
+- Help: "Bank mein jaakar check karein. RBI helpline: 1800-22-0100."
+
+### 🏦 BANKING & PRACTICAL TIPS YOU ALWAYS MENTION:
+- If someone's problem is "Money not received" (Paisa nahi aaya) ALWAYS say: "Apna Aadhaar bank account se link karwaiye (DBT link). Aksar is wajah se paisa ruk jata hai."
+- If someone says "Aadhaar mein naam galat hai" ALWAYS say: "CSC center jaake apna Aadhaar theek karwaiye, varna form reject ho jayega."
+- Many beneficiaries use a relative's phone — gently ask "Kya yeh mobile number aapke Aadhaar se linked hai?"
+
+### 🗺️ REGIONAL AWARENESS:
+- In Gujarat: land records called "7/12 utara" (Satbara), in UP it's "Khasra/Khatuni"
+- Village + Taluka + District instead of City/Pin code in rural areas
+- Many beneficiaries use father's phone — gently ask "Kya yeh mobile number aapke Aadhaar se linked hai?"
+
+### 💡 HOW YOU BEHAVE:
+- Ask ONE question at a time, gently and patiently
+- If someone gives wrong format (e.g., 11-digit Aadhaar), DON'T reject harshly — say "Aadhaar mein 12 digits hote hain, ek baar phir check karein 🙏"
+- After collecting each field, confirm it back: "Theek hai, aapka naam **Ramesh Kumar** hai, sahi hai na?"
+- If user says something incomplete ("mera naam Ram hai") — ask for full name as in Aadhaar
+- At the end, always say: "Koi documents ki zaroorat ho toh bata dena. Aapka form ready ho jayega! 🎉"
+- When you have ALL required fields, output: FIELDS_COLLECTED: {"name": "...", "aadhar": "...", "mobile": "...", "address": "...", "bankAccount": "...", "ifsc": "...", "bankName": "...", "fatherName": "..."}
+
+RULES:
+- Keep responses SHORT (2-3 sentences max, then ask next question)
+- Start responses casually: "Bilkul!", "Haan ji!", "Zaroor!", "Samajh gaya/gayi!"
+- For EVERY scheme, mention 1 most common mistake people make while filling"""
+
+    # ── 1. Try Amazon Bedrock (Claude 3 Haiku) ────────────────────────────────
     try:
-        import google.generativeai as genai
+        import boto3
 
-        api_key = os.getenv("GEMINI_API_KEY")
-        if not api_key:
-            raise ValueError("No Gemini API key")
+        aws_key    = os.getenv("AWS_ACCESS_KEY_ID")
+        aws_secret = os.getenv("AWS_SECRET_ACCESS_KEY")
+        aws_region = os.getenv("AWS_REGION", "us-east-1")
 
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel(
-            model_name='gemini-1.5-flash',
-            system_instruction=SYSTEM_PROMPT
+        # In Lambda the IAM role provides credentials automatically.
+        # Only pass explicit keys when running locally (non-empty env vars).
+        bedrock_kwargs = {
+            "service_name": "bedrock-runtime",
+            "region_name": aws_region,
+        }
+        if aws_key and aws_secret:
+            bedrock_kwargs["aws_access_key_id"] = aws_key
+            bedrock_kwargs["aws_secret_access_key"] = aws_secret
+
+        bedrock = boto3.client(**bedrock_kwargs)
+
+        # Build conversation messages for Claude
+        messages = []
+        for h in history:
+            role = "user" if h.get("role") == "user" else "assistant"
+            messages.append({"role": role, "content": h.get("content", "")})
+        messages.append({"role": "user", "content": message})
+
+        body = json.dumps({
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": 512,
+            "system": SYSTEM_PROMPT,
+            "messages": messages
+        })
+
+        response = bedrock.invoke_model(
+            modelId="anthropic.claude-3-haiku-20240307-v1:0",
+            body=body,
+            contentType="application/json",
+            accept="application/json"
         )
 
-        # Build chat history
-        gemini_history = []
-        for h in history:
-            role = "user" if h.get("role") == "user" else "model"
-            gemini_history.append({
-                "role": role,
-                "parts": [h.get("content", "")]
-            })
-
-        chat = model.start_chat(history=gemini_history)
-        response = chat.send_message(message)
-        response_text = response.text
+        result = json.loads(response["body"].read())
+        response_text = result["content"][0]["text"]
 
         # Check if fields were collected
         fields = {}
@@ -345,7 +427,7 @@ Rules:
 
         # Greetings
         if any(w in msg_lower for w in ["hello", "hi", "hey", "namaste", "helo", "hii"]):
-            response_text = "Namaste! 🙏 Main Jan-Sahayak hoon. Main aapki sarkari yojanaon mein madad kar sakta hoon. Aap kya chahte hain — koi form bharna hai ya koi shikayat karni hai?"
+            response_text = "Namaste! Aaj mai aapki kya seva kar sakti hu? 🙏 Main aapki sarkari yojanaon mein madad kar sakti hoon. Aap kya chahte hain — koi form bharna hai ya koi shikayat karni hai?"
 
         # Complaint
         elif any(w in msg_lower for w in ["complaint", "shikayat", "complain", "problem", "issue"]):

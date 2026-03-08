@@ -11,16 +11,14 @@
 export const SCHEME_FIELD_ORDER = {
     "pm-kisan": [
         "state", "district", "subDistrict", "village",
-        "name", "fatherName", "gender",
-        "aadhar", "mobile", "dob",
-        "bankAccount", "ifsc", "bankName",
-        "address", "landArea"
+        "name", "fatherName", "gender", "category",
+        "aadhar", "mobile", "address", "pinCode",
+        "ifsc", "bankName", "bankAccount"
     ],
     "ujjwala": [
-        "name", "gender", "aadhar",
-        "mobile",
-        "bankAccount", "ifsc",
-        "bplNumber", "address"
+        "name", "dob", "category", "aadhar", "mobile",
+        "houseName", "street", "village", "district", "state", "pinCode",
+        "bankName", "branchName", "ifsc", "bankAccount", "bplNumber"
     ],
     "sukanya-samriddhi": [
         "daughterName", "fatherName", "motherName",
@@ -208,15 +206,55 @@ export const FIELD_QUESTIONS = {
         hi: "आप किस श्रेणी से हैं? सामान्य, OBC, SC, या ST?",
         gu: "તમે કઈ કેટેગરીના છો? General, OBC, SC, કે ST?",
         en: "What is your category? General, OBC, SC, or ST?"
+    },
+    houseName: {
+        hi: "आपके मकान का नंबर या नाम क्या है?",
+        gu: "તમારા મકાનનો નંબર અથવા નામ શું છે?",
+        en: "What is your house number or building name?"
+    },
+    street: {
+        hi: "आपकी सड़क या गली का क्या नाम है?",
+        gu: "તમારી શેરી અથવા રસ્તાનું નામ શું છે?",
+        en: "What is the name of your street or road?"
+    },
+    pinCode: {
+        hi: "आपके इलाके का पिन कोड क्या है? 6 अंकों का।",
+        gu: "તમારા વિસ્તારનો પિન કોડ શું છે? 6 આંકડાનો.",
+        en: "What is your 6-digit area PIN code?"
+    },
+    branchName: {
+        hi: "आपका बैंक किस जगह या शाखा में है?",
+        gu: "તમારી બેંક કઈ શાખામાં આવેલી છે?",
+        en: "What is the specific branch name of your bank?"
+    },
+    houseName: {
+        hi: "आपके मकान का नंबर या नाम क्या है?",
+        gu: "તમારા મકાનનો નંબર અથવા નામ શું છે?",
+        en: "What is your house number or building name?"
+    },
+    street: {
+        hi: "आपकी सड़क या गली का क्या नाम है?",
+        gu: "તમારી શેરી અથવા રસ્તાનું નામ શું છે?",
+        en: "What is the name of your street or road?"
+    },
+    pinCode: {
+        hi: "आपके इलाके का पिन कोड क्या है? 6 अंकों का।",
+        gu: "તમારા વિસ્તારનો પિન કોડ શું છે? 6 આંકડાનો.",
+        en: "What is your 6-digit area PIN code?"
+    },
+    branchName: {
+        hi: "आपका बैंक किस जगह या शाखा में है?",
+        gu: "તમારી બેંક કઈ શાખામાં આવેલી છે?",
+        en: "What is the specific branch name of your bank?"
     }
 };
 
-// ── Conversation phrases ─────────────────────────────────────────────────────
+// ── Conversation phrases & Expert Knowledge ────────────────────────────────────
 export const PHRASES = {
     greeting: {
-        hi: (scheme) => `नमस्ते दादाजी! मैं जन-सहायक हूँ — आपका छोटा सा दोस्त। आज हम ${scheme || 'आपका फॉर्म'} भरेंगे। मैं एक-एक सवाल पूछूँगा, आप बस बोलते जाइये!`,
-        gu: (scheme) => `નમસ્તે! હું જન-સહાયક, તમારો નાનો દોસ્ત. આપણે ${scheme || 'ફોર્મ'} ભરીશું. હું એક-એક સવાલ પૂછીશ, તમે બોલ્યા કરો!`,
-        en: (scheme) => `Hello! I'm Jan-Sahayak, your little helper. We'll fill the ${scheme || 'form'} together. I'll ask one question at a time — just speak!`
+        hi: (scheme) => `नमस्ते काका! आज मैं आपकी क्या सेवा कर सकती हूँ? क्या परेशानी है? पैसा नहीं मिला? घर बनवाना है? या अस्पताल जाना है? मुझे अपनी परेशानी साधारण शब्दों में बताएं।`,
+        gu: (scheme) => `નમસ્તે કાકા! આજે હું તમારી શું સેવા કરી શકું? શું તકલીફ છે? પૈસા નથી મળ્યા? ઘર બનાવવું છે? મને તમારી તકલીફ સાદા શબ્દોમાં કહો.`,
+        en: (scheme) => `Namaste Kaka! How can I help you today? What is the problem? Didn't get money? Need to build a house? Tell me in simple words.`
     },
     gotIt: {
         hi: (val) => `बढ़िया! मैंने लिख लिया — "${val}"।`,
@@ -224,28 +262,100 @@ export const PHRASES = {
         en: (val) => `Great! I got — "${val}".`
     },
     retry: {
-        hi: "माफ़ करना, मुझे ठीक से सुनाई नहीं दिया। क्या थोड़ा ज़ोर से और फिर से बोलेंगे?",
-        gu: "માફ કરો, મને સ્પષ્ટ સંભળ્યું નહીં. જરા મોટેથી ફરીથી કહો?",
-        en: "Sorry, I didn't hear that clearly. Could you say it again a little louder?"
+        hi: "माफ़ करना, मुझे ठीक से समझ नहीं आया। क्या आप थोड़ा साफ़ बोलेंगे?",
+        gu: "માફ કરો, મને બરાબર સમજાયું નથી. જરા સાફ બોલશો?",
+        en: "Sorry, I didn't quite catch that. Could you say it a bit more clearly?"
     },
     done: {
-        hi: "शाबाश! सारी जानकारी मिल गई। बहुत अच्छा किया! अब आपका सरकारी फॉर्म तैयार है।",
-        gu: "શાબાશ! બધી માહિતી મળી ગઈ. ઘણું સારું! હવે તમારું સરકારી ફોર્મ તૈયાર છે.",
-        en: "Well done! All information collected. Your official government form is ready!"
+        hi: "शाबाश! सारी जानकारी मिल गई। अब मैं आपको पीडीएफ फॉर्म दूंगी। अगर पैसे नहीं आये हैं या फॉर्म रिजेक्ट हुआ है, तो आप CSC सेंटर जाकर चेक करा सकते हैं।",
+        gu: "શાબાશ! બધી માહિતી મળી ગઈ. હવે હું તમને પીડીએફ ફોર્મ આપીશ. જો પૈસા ન આવ્યા હોય, તો તમે CSC સેન્ટર જઈને ચેક કરાવી શકો છો.",
+        en: "Well done! All info collected. I will give you the PDF form now. If money hasn't arrived, you can visit a CSC center."
     },
     saved: {
         hi: "आपकी जानकारी सुरक्षित रख ली है!",
-        gu: "તમારી માહિતી સુરક્ષિત સ્ટોર કરી ગઈ!",
-        en: "Your information has been saved safely!"
+        gu: "તમારી માહિતી સુરક્ષિત છે!",
+        en: "Your information is saved safely!"
     },
     skip: {
-        hi: "ठीक है, इसे छोड़ देते हैं।",
-        gu: "ઠીક છે, આ છોડી દઈએ.",
-        en: "Okay, skipping this one."
+        hi: "ठीक है, इसे अभी के लिए छोड़ देते हैं।",
+        gu: "ઠીક છે, આ અત્યારે છોડી દઈએ.",
+        en: "Okay, leaving this blank for now."
+    },
+    confirmationPrompt: {
+        hi: "सारी जानकारी मिल गई है। क्या मैं आपकी जानकारी सरकारी फॉर्म में भरकर आपको पीडीएफ दे दूँ? हाँ या ना बोलें।",
+        gu: "મને બધી માહિતી મળી ગઈ છે. શું હું તમારું ફોર્મ ભરીને તમને પીડીએફ આપી દઉં? હા અથવા ના કહો.",
+        en: "I have gathered all the details. Should I process this into an official government PDF? Please say Yes or No."
+    },
+    confirmNo: {
+        hi: "ठीक है, मैंने फॉर्म रोक दिया है। आप चाहें तो स्क्रीन पर जानकारी खुद ठीक कर सकते हैं।",
+        gu: "ઠીક છે, મેં ફોર્મ અટકાવ્યું છે. તમે ઇચ્છો તો સ્ક્રીન પર માહિતી જાતે સુધારી શકો છો.",
+        en: "Okay, I've paused the generation. You can edit the form manually on the screen if you like."
     }
 };
 
-// ── Backward compat for existing code ────────────────────────────────────────
+// SCHEME EXPERT KNOWLEDGE (For AI Context & Triage)
+export const SCHEME_KNOWLEDGE = {
+    "pm-kisan": {
+        eligibility: "Small/marginal farmers (up to 2 hectares), citizen. NOT for tax payers or pensioners >10k.",
+        benefits: "₹6000/year (3 installments of ₹2000). Direct to bank.",
+        documents: "Aadhar, Land proof (Khasra/Khatauni), Bank passbook, mobile linked to Aadhar.",
+        problems: {
+            "paisa nahi aaya": "Check Beneficiary Status on pmkisan.gov.in. Complete eKYC at CSC.",
+            "name mismatch": "Go to CSC and use 'Edit Aadhaar Failure Record'.",
+        },
+        helpline: "155261, 1800115526"
+    },
+    "ujjwala": {
+        eligibility: "Women >18, BPL/SECC 2011 list, no existing LPG connection.",
+        benefits: "Free LPG connection + 1st refill. Subsidy ₹300/cylinder.",
+        documents: "Aadhar, BPL proof/SECC, Bank details, Ration card, Passport photo.",
+        problems: {
+            "paisa nahi aaya": "Check if bank is linked to LPG. Update KYC at distributor.",
+        },
+        helpline: "1800-266-6696"
+    },
+    "ayushman-bharat": {
+        eligibility: "Rural SECC 2011 deprivation, urban poor. Income < ₹2.5L.",
+        benefits: "₹5 lakh/family/year free hospital treatment.",
+        documents: "Aadhar, Ration card, mobile linked to Aadhar.",
+        problems: {
+            "card nahi mila": "Recheck eligibility on pmjay.gov.in or call 14555.",
+        },
+        helpline: "14555"
+    },
+    "pm-awas": {
+        eligibility: "Rural poor, no pucca house. EWS <1.5L.",
+        benefits: "₹1.2 lakh for house building.",
+        documents: "Aadhar, Income proof, land proof, Bank details.",
+        helpline: "1800-11-6446"
+    },
+    "ration-card": {
+        eligibility: "Annual family income < ₹4 lakh. BPL/APL.",
+        benefits: "Subsidized grains: 5kg/person/month (rice/wheat ₹2-3/kg).",
+        documents: "Aadhar of all family members, address proof, income cert.",
+        helpline: "1967"
+    },
+    "vidhva-sahay": {
+        eligibility: "Gujarat resident widow, 18-65 yrs, not remarried, income < ₹1.2L (rural).",
+        benefits: "₹1250 per month directly to bank.",
+        documents: "Aadhar, husband death cert, income cert.",
+        helpline: "1800-233-1020"
+    },
+    "sukanya-samriddhi": {
+        eligibility: "Girl child < 10 years.",
+        benefits: "Deposit ₹250 to ₹1.5L/year. 8.2% interest. Maturity 21 years.",
+        documents: "Girl's birth cert, Parent's Aadhar, PAN.",
+        helpline: "Post Office Helpline: 1800-11-3388"
+    },
+    "kisan-credit": {
+        eligibility: "Farmers with land (min 2 acres).",
+        benefits: "Credit limit up to ₹3 lakh (no collateral), 4-7% interest.",
+        documents: "Aadhar, land proof, crop details.",
+        helpline: "RBI: 1800-22-0100"
+    }
+};
+
+// ── Backward compat ────────────────────────────────────────
 export const conversationConfig = {
     greetings: {
         'hi-IN': PHRASES.greeting.hi(''),

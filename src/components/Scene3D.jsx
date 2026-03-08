@@ -8,7 +8,7 @@ function DataCube({ position, color, speed = 1 }) {
     const meshRef = useRef();
     const [hovered, setHover] = useState(false);
 
-    useFrame((state) => {
+    useFrame(() => {
         if (meshRef.current) {
             meshRef.current.rotation.x += 0.005 * speed; // Slower for smoother feel
             meshRef.current.rotation.y += 0.01 * speed;
@@ -35,24 +35,30 @@ function DataCube({ position, color, speed = 1 }) {
     );
 }
 
-// Optimized Particle Field (Reduced Count)
+// Optimized Particle Field (Reduced Count on Mobile)
 function ParticleField() {
-    const count = 150; // Drastically reduced from 400 for performance
+    // Detect mobile for performance
+    const isMobile = window.innerWidth < 768;
+    const count = isMobile ? 30 : 150; // Drastically reduced on mobile for performance
+
     const positions = useMemo(() => {
         const pos = new Float32Array(count * 3);
         for (let i = 0; i < count; i++) {
+            // eslint-disable-next-line react-hooks/purity
             pos[i * 3] = (Math.random() - 0.5) * 35;
+            // eslint-disable-next-line react-hooks/purity
             pos[i * 3 + 1] = (Math.random() - 0.5) * 20;
+            // eslint-disable-next-line react-hooks/purity
             pos[i * 3 + 2] = (Math.random() - 0.5) * 20;
         }
         return pos;
-    }, []);
+    }, [count]);
 
     const pointsRef = useRef();
 
     useFrame((state) => {
         if (pointsRef.current) {
-            pointsRef.current.rotation.y = state.clock.elapsedTime * 0.03;
+            pointsRef.current.rotation.y = state.clock.elapsedTime * (isMobile ? 0.01 : 0.03);
         }
     });
 

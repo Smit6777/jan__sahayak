@@ -68,7 +68,7 @@ export const getGeminiResponse = async (history, userInput) => {
 
         try {
             return JSON.parse(jsonStr);
-        } catch (e) {
+        } catch {
             console.error("Failed to parse Gemini JSON:", responseText);
             return { text: responseText, action: "NONE" }; // Fallback
         }

@@ -51,49 +51,59 @@ FIELD_MAPS = {
         # Section d) Bank: boxes start x≈170 for rows y=471(BankAcctName),482(BankName),494(Branch),505(AcctNo)
         #             IFSC: starts x≈389, y=494
         "box_fields": {
-            #                         pg  x_start  y_ctr   box_w  max
-            # Section a) — measured from get_drawings():
-            #   Vertical lines: 125.8, 140.0, 154.1... → box_w=14.2
-            #   Row centers from text blocks:
-            #     Row1 (First Name):  center=152.0
-            #     Row4 (Aadhaar):     center=184.6
-            #     Row5 (Mobile):      center=197.4
-            "name":        (0,  125.8, 152.0, 14.2, 22),   # First Name
-            "aadhar":      (0,  125.8, 184.6, 14.2, 16),   # Aadhaar (12 digits + 2 spaces)
-            "mobile":      (0,  125.8, 197.4, 14.2, 10),   # Mobile (10 digits)
-            # Section d) Bank — measured from get_text("words"):
-            #   box x_start=147.4, box_w=11.3 (158.7−147.4)
-            #   Row 1 "Name in Bank Account": center=475.9  (NOT FILLED — name auto-derived)
-            #   Row 2 "Bank Name":            center=487.2
-            #   Row 3 "Branch Name":          center=498.6  (IFSC starts x=401.5, box_w≈13.3)
-            #   Row 5 "Bank Account Number":  center=509.9
-            "bankName":    (0,  147.4, 487.2, 11.3, 20),   # d2 Bank Name
-            "ifsc":        (0,  401.5, 498.6, 13.3, 11),   # d3 IFSC Code (after "4. IFSC Code" label)
-            "bankAccount": (0,  147.4, 509.9, 11.3, 20),   # d5 Bank Account Number
-            # Section b) City/Town
-            "address":     (0,  147.4, 282.0, 11.3, 20),   # City/Town row
-            # Section e) Ration card no.
-            "bplNumber":   (0,  147.4, 541.0, 11.3, 18),   # Ration no.
+            # Section a) Name
+            "name":        (0,  131.0, 152.0, 14.2, 22),   # First Name (y=152.0)
+            "aadhar":      (0,  131.0, 184.6, 14.2, 16),   # Aadhaar (y=184.6)
+            "mobile":      (0,  131.0, 197.4, 14.2, 10),   # Mobile (y=197.4)
+            "dob_d":       (0,  429.7, 198.9, 14.1, 2),    # DD
+            "dob_m":       (0,  457.7, 198.9, 14.1, 2),    # MM
+            "dob_y":       (0,  486.5, 198.9, 14.1, 4),    # YYYY
+
+            # Section d) Bank
+            "bankAccountName": (0, 151.1, 475.0, 11.3, 20),
+            "bankName":    (0,  151.1, 487.2, 11.3, 20),   
+            "branchName":  (0,  151.1, 498.6, 11.3, 20),   
+            "ifsc":        (0,  406.2, 498.6, 13.3, 11),   
+            "bankAccount": (0,  151.1, 509.9, 11.3, 20),   
+
+            # Section b) Address 
+            "houseName":   (0,  151.1, 248.7, 11.3, 20),
+            "street":      (0,  151.1, 270.9, 11.3, 20),
+            "village":     (0,  151.1, 294.1, 11.3, 20),
+            "subDistrict": (0,  151.1, 305.9, 11.3, 20),
+            "district":    (0,  151.1, 316.9, 11.3, 20),
+            "state":       (0,  151.1, 327.9, 11.3, 20),
+            "pinCode":     (0,  415.0, 294.1, 11.3, 6),
+            
+            # Ration card no.
+            "bplNumber":   (0,  151.1, 541.0, 11.3, 18),   # Ration no. 
+        },
+        "fields": {
+            "category": (0, 230.0, 204.0, 150.0, 10), # Will just write SC/ST/General near the boxes
         },
         "photo_rect": fitz.Rect(467, 112, 555, 170),
     },
 
     # ── PM KISAN (Page 0) ─────────────────────────────────────────────────────
-    # Page: 612 x 1008 pts. Plain text after colon (x>264).
+    # Page: 612 x 1008 pts. Plain text after colon (x>264... wait, colon is at x=253.6).
     "pm-kisan": {
         "form_file": "pm-kisan.pdf",
         "fields": {
-            "district":    (0, 264, 272,  290, 9),
-            "subDistrict": (0, 264, 295,  290, 9),
-            "village":     (0, 264, 343,  290, 9),
-            "name":        (0, 264, 367,  290, 9),
-            "fatherName":  (0, 264, 396,  290, 9),
-            "aadhar":      (0, 264, 624,  290, 9),
-            "address":     (0, 264, 653,  310, 9),
-            "ifsc":        (0, 264, 734,  250, 9),
-            "bankName":    (0, 264, 758,  250, 9),
-            "bankAccount": (0, 264, 803,  290, 9),
-            "mobile":      (0, 264, 925,  200, 9),
+            "state":       (0, 264.0, 255.0,  290, 9),
+            "district":    (0, 264.0, 278.0,  290, 9),
+            "subDistrict": (0, 264.0, 302.0,  290, 9),
+            "village":     (0, 264.0, 349.0,  290, 9),
+            "name":        (0, 264.0, 371.0,  290, 9),
+            "fatherName":  (0, 264.0, 400.0,  290, 9),
+            "gender":      (0, 264.0, 424.0,  200, 9),
+            "category":    (0, 264.0, 448.0,  200, 9),
+            "aadhar":      (0, 264.0, 628.0,  200, 9),
+            "address":     (0, 264.0, 656.0,  350, 9),
+            "pinCode":     (0, 264.0, 675.0,  100, 9),
+            "ifsc":        (0, 264.0, 738.0,  250, 9),
+            "bankName":    (0, 264.0, 762.0,  250, 9),
+            "bankAccount": (0, 264.0, 807.0,  290, 9),
+            "mobile":      (0, 264.0, 929.0,  200, 9),
         },
         "box_fields": {},
         "photo_rect": None,
@@ -104,15 +114,15 @@ FIELD_MAPS = {
     "sukanya-samriddhi": {
         "form_file": "sukanya-samriddhi.pdf",
         "fields": {
-            "daughterName": (0, 280, 223, 260, 9),
-            "fatherName":   (0, 270, 235, 270, 9),
-            "motherName":   (0, 270, 235, 270, 9),   # same row, suffix
-            "daughterDOB":  (0, 200, 247, 200, 9),
-            "name":         (0, 270, 370, 260, 9),   # guardian
-            "aadhar":       (0, 270, 395, 200, 9),
-            "address":      (0, 200, 467, 350, 9),
-            "bankAccount":  (0, 200, 510, 280, 9),
-            "mobile":       (0, 400, 467,  160, 9),
+            "daughterName": (0, 280.0, 223.0, 260, 9),
+            "fatherName":   (0, 270.0, 235.0, 270, 9),
+            "motherName":   (0, 270.0, 235.0, 270, 9), 
+            "daughterDOB":  (0, 200.0, 247.0, 200, 9),
+            "name":         (0, 270.0, 370.0, 260, 9), 
+            "aadhar":       (0, 270.0, 395.0, 200, 9), 
+            "address":      (0, 200.0, 467.0, 350, 9),
+            "mobile":       (0, 400.0, 467.0, 160, 9),
+            "bankAccount":  (0, 200.0, 510.0, 250, 9),
         },
         "photo_rect": None,
     },
@@ -229,9 +239,9 @@ def _fill_boxes(page: fitz.Page, x_start: float, y_center: float,
             break
         if ch == ' ':
             continue   # leave box blank (space = skip box)
-        # Center horizontally in the box
-        x_box_left = x_start + i * box_w
-        x_char     = x_box_left + (box_w - char_px) / 2
+        
+        # Exact placement without centering offsets
+        x_char = x_start + i * box_w
         page.insert_text(
             fitz.Point(x_char, y_center),
             ch,
@@ -396,6 +406,15 @@ async def generate_filled_pdf(
 
             # ── Box-grid fields (one UPPERCASE char per box) ──────────────
             box_map = field_map.get("box_fields", {})
+            
+            # Parse Date of Birth into box parts if present
+            if "dob" in fields:
+                dob_str = str(fields["dob"]).replace("/", "").replace("-", "").replace(".", "").replace(" ", "")
+                if len(dob_str) >= 8:
+                    fields["dob_d"] = dob_str[0:2]
+                    fields["dob_m"] = dob_str[2:4]
+                    fields["dob_y"] = dob_str[4:8]
+
             for field_key, value in fields.items():
                 if field_key not in box_map:
                     continue
@@ -420,8 +439,22 @@ async def generate_filled_pdf(
                 if pg_idx >= len(doc):
                     continue
                 page = doc[pg_idx]
+                
+                # PM Kisan Checkbox placements
+                val_str = str(value).strip().upper()
+                if scheme == "pm-kisan" and field_key == "gender":
+                    if "F" in val_str: x = 327.0
+                    else: x = 280.9
+                    value = "X"
+                elif scheme == "pm-kisan" and field_key == "category":
+                    if "SC" in val_str: x = 375.8
+                    elif "ST" in val_str: x = 403.7
+                    else: x = 280.9
+                    value = "X"
+
                 _write_text(page, x, y, str(value), fontsize=fsize,
                             color=INK, max_width=max_w)
+
 
             # Paste passport photo if provided and form has a photo box
             if photo_bytes and field_map.get("photo_rect"):

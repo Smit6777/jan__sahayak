@@ -66,6 +66,7 @@
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  background-color: var(--bg-deep);
 }
 
 body {
@@ -74,6 +75,11 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
+  min-height: 100vh;
+}
+
+#root {
+  background-color: var(--bg-deep);
   min-height: 100vh;
 }
 

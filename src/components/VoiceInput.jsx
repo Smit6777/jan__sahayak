@@ -26,90 +26,7 @@ export default function VoiceInput({ onTranscript, disabled, autoStart }) {
     const animationFrameRef = useRef(null);
     const autoStartedRef = useRef(false);
 
-    // Auto-start listening if prop is true (guard with ref to prevent infinite loop)
-    useEffect(() => {
-        if (autoStart && !isListening && !autoStartedRef.current) {
-            autoStartedRef.current = true;
-            toggleListening();
-        }
-        if (!autoStart) {
-            autoStartedRef.current = false;
-        }
-    }, [autoStart]); // eslint-disable-line react-hooks/exhaustive-deps
-
     const transcriptRef = useRef(''); // Ref to access latest transcript in callbacks
-
-    useEffect(() => {
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognitionRef.current = new SpeechRecognition();
-            recognitionRef.current.continuous = false; // Stop after one sentence for turn-taking
-            recognitionRef.current.interimResults = true;
-            recognitionRef.current.lang = selectedLang;
-
-            recognitionRef.current.onstart = () => {
-                setIsListening(true);
-                transcriptRef.current = '';
-                setTranscript('');
-            };
-
-            recognitionRef.current.onresult = (event) => {
-                let finalTranscript = '';
-                let interimTranscript = '';
-
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const t = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        finalTranscript += t;
-                    } else {
-                        interimTranscript += t;
-                    }
-                }
-
-                const full = finalTranscript || interimTranscript;
-                setTranscript(full);
-                transcriptRef.current = full;
-            };
-
-            recognitionRef.current.onerror = (event) => {
-                console.warn("Voice Error:", event.error);
-                if (event.error === 'no-speech') {
-                    // Critical Fix: If no speech detected, don't just die. Restart listening visually.
-                    // But we won't toggle isListening off, effectively "retrying"
-                    return;
-                }
-                setError(`Voice error: ${event.error}`);
-                setIsListening(false);
-            };
-
-            recognitionRef.current.onend = () => {
-                // Auto-submit if we have text
-                const text = transcriptRef.current.trim();
-
-                if (text && onTranscript) {
-                    setIsListening(false);
-                    console.log("🎤 Speech ended, sending:", text);
-                    onTranscript(text, selectedLang);
-                } else if (isListening) {
-                    // If we are still "technically" listening but it stopped (e.g. no-speech), restart it!
-                    console.log("🔄 No speech detected, restarting listener...");
-                    try {
-                        recognitionRef.current.start();
-                    } catch (e) {
-                        setIsListening(false); // Safety break
-                    }
-                } else {
-                    setIsListening(false);
-                }
-            };
-        } else {
-            setError('Voice recognition not supported in this browser');
-        }
-
-        return () => {
-            if (recognitionRef.current) recognitionRef.current.stop();
-        };
-    }, [selectedLang, onTranscript]);
 
     const startAudioVisualization = async () => {
         try {
@@ -157,6 +74,91 @@ export default function VoiceInput({ onTranscript, disabled, autoStart }) {
         }
         setIsListening(!isListening);
     };
+
+    // Auto-start listening if prop is true (guard with ref to prevent infinite loop)
+    useEffect(() => {
+        if (autoStart && !isListening && !autoStartedRef.current) {
+            autoStartedRef.current = true;
+            toggleListening();
+        }
+        if (!autoStart) {
+            autoStartedRef.current = false;
+        }
+    }, [autoStart]); // eslint-disable-line react-hooks/exhaustive-deps
+
+
+
+    useEffect(() => {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognitionRef.current = new SpeechRecognition();
+            recognitionRef.current.continuous = false; // Stop after one sentence for turn-taking
+            recognitionRef.current.interimResults = true;
+            recognitionRef.current.lang = selectedLang;
+
+            recognitionRef.current.onstart = () => {
+                setIsListening(true);
+                transcriptRef.current = '';
+                setTranscript('');
+            };
+
+            recognitionRef.current.onresult = (event) => {
+                let finalTranscript = '';
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const t = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += t;
+                    } else {
+                        interimTranscript += t;
+                    }
+                }
+
+                const full = finalTranscript || interimTranscript;
+                setTranscript(full);
+                transcriptRef.current = full;
+            };
+
+            recognitionRef.current.onerror = (event) => {
+                console.warn("Voice Error:", event.error);
+                if (event.error === 'no-speech') {
+                    // Critical Fix: If no speech detected, don't just die. Restart listening visually.
+                    // But we won't toggle isListening off, effectively "retrying"
+                    return;
+                }
+                setIsListening(false);
+            };
+
+            recognitionRef.current.onend = () => {
+                // Auto-submit if we have text
+                const text = transcriptRef.current.trim();
+
+                if (text && onTranscript) {
+                    setIsListening(false);
+                    console.log("🎤 Speech ended, sending:", text);
+                    onTranscript(text, selectedLang);
+                } else if (isListening) {
+                    // If we are still "technically" listening but it stopped (e.g. no-speech), restart it!
+                    console.log("🔄 No speech detected, restarting listener...");
+                    try {
+                        recognitionRef.current.start();
+                    } catch {
+                        setIsListening(false); // Safety break
+                    }
+                } else {
+                    setIsListening(false);
+                }
+            };
+        } else {
+            setError('Voice recognition not supported in this browser');
+        }
+
+        return () => {
+            if (recognitionRef.current) recognitionRef.current.stop();
+        };
+    }, [selectedLang, onTranscript, isListening]);
+
 
     // Get current language name
     const currentLangName = LANGUAGES.find(l => l.code === selectedLang)?.name || 'Hindi';
